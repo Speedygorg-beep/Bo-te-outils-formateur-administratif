@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outils enseignants</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#f1f0e9;
+    --surface:#fbfaf5;
+    --ink:#22231f;
+    --ink-soft:#63645a;
+    --line:#d8d6c9;
+    --accent:#3e5c76;
+    --accent-soft:#e2e8ed;
+    --shadow: 0 1px 2px rgba(34,35,31,0.06), 0 6px 16px rgba(34,35,31,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1c1e1b; --surface:#242621; --ink:#ebe9df; --ink-soft:#a6a79b;
+      --line:#3a3c36; --accent:#93b3ca; --accent-soft:#2a3540;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1c1e1b; --surface:#242621; --ink:#ebe9df; --ink-soft:#a6a79b;
+    --line:#3a3c36; --accent:#93b3ca; --accent-soft:#2a3540;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.3);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    line-height:1.55;
+  }
+  main{ max-width:760px; margin:0 auto; padding:56px 24px 80px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--accent); margin:0 0 10px;
+  }
+  h1{
+    font-family:'Newsreader', Georgia, serif; font-style:italic; font-weight:600;
+    font-size:2.1rem; line-height:1.15; margin:0 0 14px; text-wrap:balance;
+  }
+  .lede{ font-size:1rem; color:var(--ink-soft); max-width:60ch; margin:0 0 40px; }
+
+  .grid{ display:grid; gap:14px; }
+  a.card{
+    display:block; text-decoration:none; color:inherit;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; box-shadow:var(--shadow);
+    transition: border-color .15s ease;
+  }
+  a.card:hover{ border-color:var(--accent); }
+  a.card:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .card h2{
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:1.05rem; margin:0 0 6px;
+  }
+  .card p{ margin:0; font-size:0.88rem; color:var(--ink-soft); }
+  .card .go{
+    font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--accent);
+    margin-top:10px; display:block;
+  }
+
+  footer{
+    max-width:760px; margin:40px auto 0; padding:20px 24px 0;
+    font-size:0.78rem; color:var(--ink-soft); border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Boîte à outils — apprenants &amp; administratif</p>
+  <h1>Outils pour l'équipe enseignante</h1>
+  <p class="lede">Chaque outil ci-dessous fonctionne entièrement dans votre navigateur : aucun compte, aucune connexion, rien n'est envoyé à un serveur. Vous pouvez copier le texte généré ou l'exporter directement en PDF, Word ou texte.</p>
+
+  <div class="grid">
+    <a class="card" href="mots-aux-familles.html">
+      <h2>Mots aux familles</h2>
+      <p>Absence, retard, comportement, encouragement, convocation ou mot libre — remplissez quelques champs, obtenez un texte prêt à envoyer.</p>
+      <span class="go">Ouvrir l'outil →</span>
+    </a>
+
+    <a class="card" href="appreciations-bulletin.html">
+      <h2>Appréciations bulletin</h2>
+      <p>Composez une appréciation à partir des résultats, de l'investissement et du comportement de l'apprenant.</p>
+      <span class="go">Ouvrir l'outil →</span>
+    </a>
+  </div>
+
+  <footer>
+    D'autres outils viendront s'ajouter à cette page au fil du temps.
+  </footer>
+</main>
+</body>
+</html>
