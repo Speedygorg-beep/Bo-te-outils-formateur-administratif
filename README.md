@@ -63,3 +63,14 @@ tel quel dans le nouveau fichier) :
 (nécessite que la page définisse aussi `--accent-ink`, déjà présent dans les
 outils existants — copier ces variables si le nouvel outil part d'une palette
 différente.)
+
+Tout outil doit aussi donner un retour visuel après clic sur le bouton
+« Générer » : le formulaire étant souvent plus long que la zone de résultat,
+rien ne garantit que le résultat soit visible sans cela. Convention à copier
+depuis un outil existant : donner `id="outputPanel"` à la `<section
+class="panel">` qui contient la zone de résultat, puis appeler
+`scrollToOutput()` (fonction utilitaire déjà présente dans chaque outil, à
+copier telle quelle) à la toute fin de la fonction `showLetter()` /
+`showEntry()` / `showReport()` (celle qui affiche le texte généré) — elle
+fait défiler la page jusqu'au résultat et l'entoure d'un bref halo (classe
+CSS `.just-generated` + `@keyframes panelFlash`, également à copier).

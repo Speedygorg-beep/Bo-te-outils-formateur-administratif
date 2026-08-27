@@ -253,6 +253,16 @@
   }
   .btn-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
 
+  @keyframes panelFlash{
+    0%{ outline-color: transparent; }
+    20%{ outline-color: var(--accent); }
+    100%{ outline-color: transparent; }
+  }
+  .panel.just-generated{
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+    animation: panelFlash 1.4s ease-out;
+  }
   .output-empty{
     color:var(--ink-soft);
     font-size:0.88rem;
@@ -302,8 +312,6 @@
     font-size:0.76rem; color:var(--ink-soft);
   }
 </style>
-</head>
-<body>
 
 <div class="topbar">
   <div class="topbar-inner">
@@ -356,7 +364,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="outputPanel">
       <div class="panel-head">
         <h2>2 — Relire &amp; copier</h2>
         <span class="copied-msg" id="copiedMsg">Copié ✓</span>
@@ -1111,6 +1119,17 @@ if (typeof module !== 'undefined' && module.exports){
     return out.join('\n');
   }
 
+  function scrollToOutput(){
+    var panel = document.getElementById('outputPanel');
+    if(!panel) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    panel.classList.remove('just-generated');
+    void panel.offsetWidth; // force reflow so the flash can restart on consecutive clicks
+    panel.classList.add('just-generated');
+    setTimeout(function(){ panel.classList.remove('just-generated'); }, 1500);
+  }
+
   function resetOutput(){
     state.letterLines = null;
     document.getElementById('emptyState').style.display = '';
@@ -1130,6 +1149,7 @@ if (typeof module !== 'undefined' && module.exports){
     document.getElementById('outActions').style.display = '';
     document.getElementById('exportRow').style.display = '';
     setExportMsg('');
+    scrollToOutput();
   }
 
   document.getElementById('genBtn').addEventListener('click', function(){

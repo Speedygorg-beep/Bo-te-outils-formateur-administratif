@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Assistant Cahier de Textes</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -145,6 +150,16 @@
   .btn-ghost{ background:transparent; color:var(--accent); width:auto; padding:8px 12px; font-size:0.8rem; }
   .btn-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
 
+  @keyframes panelFlash{
+    0%{ outline-color: transparent; }
+    20%{ outline-color: var(--accent); }
+    100%{ outline-color: transparent; }
+  }
+  .panel.just-generated{
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+    animation: panelFlash 1.4s ease-out;
+  }
   .output-empty{
     color:var(--ink-soft); font-size:0.88rem; padding:30px 6px; text-align:center;
     border:1px dashed var(--line); border-radius:8px;
@@ -235,7 +250,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="outputPanel">
       <div class="panel-head">
         <h2>2 — Relire &amp; copier</h2>
         <span class="copied-msg" id="copiedMsg">Copié ✓</span>
@@ -706,6 +721,17 @@ if (typeof module !== 'undefined' && module.exports){
     return lines.join('\n');
   }
 
+  function scrollToOutput(){
+    var panel = document.getElementById('outputPanel');
+    if(!panel) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    panel.classList.remove('just-generated');
+    void panel.offsetWidth; // force reflow so the flash can restart on consecutive clicks
+    panel.classList.add('just-generated');
+    setTimeout(function(){ panel.classList.remove('just-generated'); }, 1500);
+  }
+
   function resetOutput(){
     document.getElementById('emptyState').style.display = '';
     document.getElementById('entryOut').style.display = 'none';
@@ -724,6 +750,7 @@ if (typeof module !== 'undefined' && module.exports){
     document.getElementById('outActions').style.display = '';
     document.getElementById('exportRow').style.display = '';
     setExportMsg('');
+    scrollToOutput();
   }
 
   document.getElementById('genBtn').addEventListener('click', showEntry);
@@ -831,3 +858,5 @@ if (typeof module !== 'undefined' && module.exports){
   resetOutput();
 })();
 </script>
+</body>
+</html>
