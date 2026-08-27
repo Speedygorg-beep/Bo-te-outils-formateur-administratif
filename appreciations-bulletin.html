@@ -187,6 +187,17 @@
     padding-top:10px;
     border-top:1px dashed var(--line);
   }
+  .batch-row{
+    margin-bottom:16px;
+    padding-bottom:14px;
+    border-bottom:1px dashed var(--line);
+  }
+  .batch-row:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .batch-row label{
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:0.85rem;
+    color:var(--ink); margin-bottom:6px;
+  }
+  .batch-row textarea{ min-height:90px; white-space:pre-wrap; }
   .export-label{
     font-family:'IBM Plex Mono', monospace;
     font-size:0.66rem;
@@ -223,9 +234,29 @@
       <div class="panel-head"><h2>1 — Composer</h2></div>
       <div class="panel-body">
         <form id="fieldForm">
+          <fieldset>
+            <legend>Traitement</legend>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="batchMode" value="single" checked><span>Un apprenant</span></label>
+              <label class="chip"><input type="radio" name="batchMode" value="batch"><span>Plusieurs apprenants (même profil)</span></label>
+            </div>
+            <p class="hint">Mode « plusieurs apprenants » : tous les réglages ci-dessous (résultats, investissement, comportement, assiduité…) s'appliquent au groupe entier — seuls le prénom et le détail personnel changent, apprenant par apprenant. Chaque texte reste individuellement modifiable avant export.</p>
+          </fieldset>
+
           <div class="field-row">
-            <div class="field"><label for="eleve">Prénom apprenant <span class="req">*</span></label><input type="text" id="eleve" placeholder="Léa"></div>
+            <div class="field" id="singleNameField"><label for="eleve">Prénom apprenant <span class="req">*</span></label><input type="text" id="eleve" placeholder="Léa"></div>
             <div class="field"><label for="matiere">Matière (facultatif)</label><input type="text" id="matiere" placeholder="ex. mathématiques"></div>
+          </div>
+
+          <div class="field" id="batchListField" style="display:none;">
+            <label for="batchList">Liste des apprenants (un par ligne — « Prénom » ou « Prénom; détail personnel »)</label>
+            <textarea id="batchList" rows="5" placeholder="Léa Martin; bonne dynamique depuis le retour de stage&#10;Hugo Dubois&#10;Nina Petit; attention portée aux consignes écrites"></textarea>
+            <div class="btn-row" style="margin-top:8px;">
+              <label class="btn btn-ghost" style="cursor:pointer;">Importer un fichier .csv
+                <input type="file" id="batchFile" accept=".csv,text/csv" style="display:none;">
+              </label>
+            </div>
+            <p class="hint">Collez une liste depuis Excel ou Yparéo (une colonne prénom, éventuellement une 2ᵉ colonne détail), ou importez un .csv (séparateur « ; » ou « , »). Le format .xlsx natif n'est pas géré directement — enregistrez d'abord en .csv (Excel : Fichier → Enregistrer sous → CSV UTF-8).</p>
           </div>
 
           <fieldset>
@@ -342,7 +373,7 @@
             </div>
           </fieldset>
 
-          <div class="field">
+          <div class="field" id="singleDetailField">
             <label for="detail">Détail propre à l'apprenant (facultatif)</label>
             <textarea id="detail" rows="2" placeholder="ex. bonne dynamique depuis le retour du stage"></textarea>
           </div>
@@ -406,6 +437,23 @@
             <button type="button" class="btn btn-ghost" id="exportDocxBtn">Word (.docx)</button>
           </div>
           <div class="export-msg" id="exportMsg"></div>
+        </div>
+
+        <div id="batchOutput" style="display:none">
+          <div class="btn-row" style="margin-bottom:12px;">
+            <button type="button" class="btn btn-ghost" id="batchRerollAllBtn">🎲 Régénérer tout le lot</button>
+            <button type="button" class="btn btn-ghost" id="batchCopyAllBtn">Copier tout le lot</button>
+          </div>
+          <div id="batchRows"></div>
+          <div class="export-row" id="batchExportRow" style="display:none">
+            <span class="export-label">Exporter le lot (document combiné, dans l'ordre affiché)</span>
+            <div class="btn-row">
+              <button type="button" class="btn btn-ghost" id="batchExportTxtBtn">Texte (.txt)</button>
+              <button type="button" class="btn btn-ghost" id="batchExportPdfBtn">PDF</button>
+              <button type="button" class="btn btn-ghost" id="batchExportDocxBtn">Word (.docx)</button>
+            </div>
+            <div class="export-msg" id="batchExportMsg"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -755,9 +803,25 @@ if (typeof module !== 'undefined' && module.exports){
 (function(){
   "use strict";
 
-  function pick(arr, i){ return arr[((i % arr.length) + arr.length) % arr.length]; }
   function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
   function fill(str, eleve){ return str.split('{E}').join(eleve); }
+  // Each axis picks its wording independently at random (rather than one shared
+  // "variant index" applied to every axis) so that two apprenants with the exact
+  // same dropdown selections don't produce byte-identical text — important both for
+  // a single appréciation and, especially, when generating several at once (see the
+  // "Traitement" / batch mode below).
+  function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+  // Fisher–Yates shuffle — used to vary the order of the independent observation
+  // sentences (évolution / investissement / comportement / assiduité / détail…) so
+  // that repeated generations don't all read in the same fixed sequence either.
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
 
   // ---------- phrase banks (each axis is independent — they compose, not a cross-product) ----------
 
@@ -899,12 +963,16 @@ if (typeof module !== 'undefined' && module.exports){
     aucune: null
   };
 
-  // ---------- state ----------
-  var state = { variant: 0 };
-
-  function collect(){
+  // ---------- collect / assemble ----------
+  // collect(overrides) reads every shared control from the form, but lets a caller
+  // (the batch loop) substitute the per-apprenant fields (eleve, detail) without
+  // touching the DOM — this is what lets a single assemble() drive both "un
+  // apprenant" and "plusieurs apprenants" modes.
+  function collect(overrides){
+    overrides = overrides || {};
     return {
-      eleve: document.getElementById('eleve').value.trim(),
+      eleve: overrides.eleve !== undefined ? overrides.eleve : document.getElementById('eleve').value.trim(),
+      detail: overrides.detail !== undefined ? overrides.detail : document.getElementById('detail').value.trim(),
       matiere: document.getElementById('matiere').value.trim(),
       typeDoc: document.querySelector('input[name="typeDoc"]:checked').value,
       designation: document.getElementById('designation').value,
@@ -917,19 +985,17 @@ if (typeof module !== 'undefined' && module.exports){
       assiduite: document.getElementById('assiduite').value,
       integrationFle: document.getElementById('integrationFle').value,
       amenagements: document.getElementById('amenagements').value,
-      detail: document.getElementById('detail').value.trim(),
       remediation: document.getElementById('remediation').value,
       registre: document.querySelector('input[name="registre"]:checked').value
     };
   }
 
-  function assemble(){
-    var f = collect();
+  function assemble(overrides){
+    var f = collect(overrides);
     if(!f.eleve || !f.niveau){
       alert('Merci de renseigner au moins le prénom de l\'apprenant et le niveau global.');
       return null;
     }
-    var v = state.variant;
     var M = f.matiere ? (' en ' + f.matiere) : '';
     var isLivret = f.typeDoc === 'livret';
     var E = isLivret ? f.designation : null;
@@ -941,19 +1007,27 @@ if (typeof module !== 'undefined' && module.exports){
     var integrationFleBank = isLivret ? INTEGRATION_FLE : INTEGRATION_FLE_VOUS;
     var amenagementsBank = isLivret ? AMENAGEMENTS : AMENAGEMENTS_VOUS;
 
-    var lines = [];
-    lines.push(fill(pick(niveauBank[f.niveau], v), E).replace('{M}', M));
+    // Résultats (niveau) always opens the appréciation.
+    var niveauLine = fill(pickRandom(niveauBank[f.niveau]), E).replace('{M}', M);
 
-    if(f.evolution){ lines.push(pick(EVOLUTION[f.evolution], v)); }
-    if(f.investissement){ lines.push(fill(pick(investissementBank[f.investissement], v), E)); }
-    if(f.comportement){ lines.push(fill(pick(comportementBank[f.comportement], v), E)); }
-    if(f.assiduite){ lines.push(fill(pick(assiduiteBank[f.assiduite], v), E).replace('{M}', M)); }
-    if(f.fle && f.integrationFle){ lines.push(fill(pick(integrationFleBank[f.integrationFle], v), E)); }
-    if(f.rqth && f.amenagements){ lines.push(fill(pick(amenagementsBank[f.amenagements], v), E).replace('{M}', M)); }
-    if(f.detail){ lines.push(cap(f.detail) + (/[.!?]$/.test(f.detail) ? '' : '.')); }
-    if(!isLivret && f.remediation && f.remediation !== 'aucune'){ lines.push(pick(REMEDIATION[f.remediation], v)); }
-    if(!isLivret && CLOSING[f.registre]){ lines.push(pick(CLOSING[f.registre], v)); }
+    // The other observations are independent of one another — their order carries
+    // no meaning, so it's shuffled on every generation for extra variety.
+    var middle = [];
+    if(f.evolution){ middle.push(pickRandom(EVOLUTION[f.evolution])); }
+    if(f.investissement){ middle.push(fill(pickRandom(investissementBank[f.investissement]), E)); }
+    if(f.comportement){ middle.push(fill(pickRandom(comportementBank[f.comportement]), E)); }
+    if(f.assiduite){ middle.push(fill(pickRandom(assiduiteBank[f.assiduite]), E).replace('{M}', M)); }
+    if(f.fle && f.integrationFle){ middle.push(fill(pickRandom(integrationFleBank[f.integrationFle]), E)); }
+    if(f.rqth && f.amenagements){ middle.push(fill(pickRandom(amenagementsBank[f.amenagements]), E).replace('{M}', M)); }
+    if(f.detail){ middle.push(cap(f.detail) + (/[.!?]$/.test(f.detail) ? '' : '.')); }
+    middle = shuffle(middle);
 
+    // Conseils pour progresser / formule finale always close the appréciation (bulletin only).
+    var tail = [];
+    if(!isLivret && f.remediation && f.remediation !== 'aucune'){ tail.push(pickRandom(REMEDIATION[f.remediation])); }
+    if(!isLivret && CLOSING[f.registre]){ tail.push(pickRandom(CLOSING[f.registre])); }
+
+    var lines = [niveauLine].concat(middle, tail);
     return lines.map(cap).join(' ');
   }
 
@@ -974,7 +1048,10 @@ if (typeof module !== 'undefined' && module.exports){
     document.getElementById('outActions').style.display = 'none';
     document.getElementById('metaRow').style.display = 'none';
     document.getElementById('exportRow').style.display = 'none';
+    document.getElementById('batchOutput').style.display = 'none';
+    document.getElementById('batchExportRow').style.display = 'none';
     setExportMsg('');
+    setBatchExportMsg('');
   }
 
   function updateCount(text){
@@ -991,6 +1068,8 @@ if (typeof module !== 'undefined' && module.exports){
     var text = assemble();
     if(text === null) return;
     document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('batchOutput').style.display = 'none';
+    document.getElementById('batchExportRow').style.display = 'none';
     var out = document.getElementById('letterOut');
     out.style.display = '';
     out.value = text;
@@ -1018,23 +1097,172 @@ if (typeof module !== 'undefined' && module.exports){
     document.getElementById('rqthHint').style.display = on ? '' : 'none';
     document.getElementById('amenagementsFieldset').style.display = on ? '' : 'none';
   }
+  function updateBatchModeUI(){
+    var isBatch = document.querySelector('input[name="batchMode"]:checked').value === 'batch';
+    document.getElementById('singleNameField').style.display = isBatch ? 'none' : '';
+    document.getElementById('batchListField').style.display = isBatch ? '' : 'none';
+    document.getElementById('singleDetailField').style.display = isBatch ? 'none' : '';
+    document.getElementById('genBtn').textContent = isBatch ? 'Générer le lot' : 'Générer l\'appréciation';
+    document.getElementById('emptyState').textContent = isBatch
+      ? 'Collez ou importez la liste des apprenants ci-contre, réglez le profil commun, puis cliquez sur « Générer le lot ». Chaque texte reste modifiable avant export.'
+      : 'Renseignez au moins le prénom et le niveau global, puis cliquez sur « Générer l\'appréciation ». Le texte s\'affiche ici, modifiable avant de le coller dans Yparéo.';
+    resetOutput();
+  }
   Array.prototype.forEach.call(document.querySelectorAll('input[name="typeDoc"]'), function(el){
     el.addEventListener('change', updateModeUI);
   });
   document.getElementById('fle').addEventListener('change', updateFleUI);
   document.getElementById('rqth').addEventListener('change', updateRqthUI);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="batchMode"]'), function(el){
+    el.addEventListener('change', updateBatchModeUI);
+  });
   updateModeUI();
   updateFleUI();
   updateRqthUI();
+  updateBatchModeUI();
+
+  // ---------- Traitement par lot (plusieurs apprenants, même profil) ----------
+  var batchState = { rows: [] };
+
+  // Accepts a semicolon-, comma- or tab-separated line — French Excel exports CSV
+  // with ";" by default (since "," is the decimal separator), so ";" is tried first.
+  function splitBatchLine(line){
+    if(line.indexOf(';') !== -1) return line.split(';');
+    if(line.indexOf(',') !== -1) return line.split(',');
+    if(line.indexOf('\t') !== -1) return line.split('\t');
+    return [line];
+  }
+  var BATCH_HEADER_WORDS = ['prenom', 'prénom', 'nom', 'apprenant', 'apprenant(e)', 'apprenti', 'apprenti(e)', 'eleve', 'élève', 'etudiant', 'étudiant'];
+  function parseBatchList(raw){
+    var lines = String(raw || '').split(/\r?\n/);
+    var rows = [];
+    lines.forEach(function(line, idx){
+      var t = line.trim();
+      if(!t) return;
+      var cols = splitBatchLine(t).map(function(c){ return c.trim().replace(/^"+|"+$/g, ''); });
+      var name = cols[0] || '';
+      if(BATCH_HEADER_WORDS.indexOf(name.toLowerCase()) !== -1) return; // skip a header row (any position — a CSV import can land mid-list)
+      var detail = cols.slice(1).join(' ; ').trim();
+      if(name) rows.push({ eleve: name, detail: detail });
+    });
+    return rows;
+  }
+
+  function setBatchExportMsg(text, kind){
+    var el = document.getElementById('batchExportMsg');
+    if(!el) return;
+    el.textContent = text || '';
+    el.className = 'export-msg' + (kind ? ' ' + kind : '');
+  }
+
+  function renderBatchRows(){
+    var container = document.getElementById('batchRows');
+    container.innerHTML = '';
+    batchState.rows.forEach(function(row){
+      var div = document.createElement('div');
+      div.className = 'batch-row';
+
+      var label = document.createElement('label');
+      label.textContent = row.eleve;
+      div.appendChild(label);
+
+      var ta = document.createElement('textarea');
+      ta.rows = 4;
+      ta.value = row.text;
+      div.appendChild(ta);
+
+      var btnRow = document.createElement('div');
+      btnRow.className = 'btn-row';
+      btnRow.style.marginTop = '6px';
+      var rerollBtn = document.createElement('button');
+      rerollBtn.type = 'button';
+      rerollBtn.className = 'btn btn-ghost';
+      rerollBtn.textContent = '🎲 Autre formulation';
+      rerollBtn.addEventListener('click', function(){
+        var text = assemble({ eleve: row.eleve, detail: row.detail });
+        if(text !== null){ row.text = text; ta.value = text; }
+      });
+      btnRow.appendChild(rerollBtn);
+      div.appendChild(btnRow);
+
+      container.appendChild(div);
+    });
+  }
+
+  function buildBatchCombinedText(){
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#batchRows .batch-row'));
+    return rows.map(function(div){
+      var name = div.querySelector('label').textContent;
+      var text = div.querySelector('textarea').value;
+      return name + '\n' + text;
+    }).join('\n\n— — —\n\n');
+  }
+
+  function runBatch(){
+    var rows = parseBatchList(document.getElementById('batchList').value);
+    if(!rows.length){
+      alert('Merci de coller ou d\'importer au moins un apprenant : un prénom par ligne, par exemple « Léa Martin » ou « Léa Martin; bonne dynamique depuis le retour de stage ».');
+      return;
+    }
+    var results = [];
+    for(var i = 0; i < rows.length; i++){
+      var text = assemble({ eleve: rows[i].eleve, detail: rows[i].detail });
+      if(text === null) return; // niveau manquant — assemble() a déjà affiché l'alerte
+      results.push({ eleve: rows[i].eleve, detail: rows[i].detail, text: text });
+    }
+    batchState.rows = results;
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('letterOut').style.display = 'none';
+    document.getElementById('outActions').style.display = 'none';
+    document.getElementById('metaRow').style.display = 'none';
+    document.getElementById('exportRow').style.display = 'none';
+    renderBatchRows();
+    document.getElementById('batchOutput').style.display = '';
+    document.getElementById('batchExportRow').style.display = '';
+    setExportMsg('');
+    setBatchExportMsg('');
+    scrollToOutput();
+  }
+
+  document.getElementById('batchFile').addEventListener('change', function(e){
+    var file = e.target.files && e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var text = String(ev.target.result || '').trim();
+      var existing = document.getElementById('batchList').value;
+      document.getElementById('batchList').value = existing ? (existing.replace(/\n+$/, '') + '\n' + text) : text;
+    };
+    reader.onerror = function(){
+      alert('Impossible de lire ce fichier. Vérifiez qu\'il s\'agit bien d\'un fichier .csv (texte) — le format .xlsx natif n\'est pas géré.');
+    };
+    reader.readAsText(file, 'UTF-8');
+    e.target.value = '';
+  });
+
+  document.getElementById('batchRerollAllBtn').addEventListener('click', function(){
+    batchState.rows.forEach(function(row){
+      var text = assemble({ eleve: row.eleve, detail: row.detail });
+      if(text !== null){ row.text = text; }
+    });
+    renderBatchRows();
+  });
+
+  document.getElementById('batchCopyAllBtn').addEventListener('click', function(){
+    var text = buildBatchCombinedText();
+    if(!text) return;
+    var msg = document.getElementById('copiedMsg');
+    function flash(){ msg.classList.add('show'); setTimeout(function(){ msg.classList.remove('show'); }, 1600); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(flash).catch(function(){});
+    }
+  });
 
   document.getElementById('genBtn').addEventListener('click', function(){
-    state.variant = 0;
-    showLetter();
+    var isBatch = document.querySelector('input[name="batchMode"]:checked').value === 'batch';
+    if(isBatch){ runBatch(); } else { showLetter(); }
   });
-  document.getElementById('variantBtn').addEventListener('click', function(){
-    state.variant += 1;
-    showLetter();
-  });
+  document.getElementById('variantBtn').addEventListener('click', showLetter);
   document.getElementById('letterOut').addEventListener('input', function(){
     updateCount(this.value);
   });
@@ -1136,6 +1364,53 @@ if (typeof module !== 'undefined' && module.exports){
   document.getElementById('exportTxtBtn').addEventListener('click', function(){ doExport('txt'); });
   document.getElementById('exportPdfBtn').addEventListener('click', function(){ doExport('pdf'); });
   document.getElementById('exportDocxBtn').addEventListener('click', function(){ doExport('docx'); });
+
+  // ---------- export du lot (document combiné — même moteur TXT/PDF/DOCX que ci-dessus) ----------
+  function batchExportFilenameBase(){
+    var f = collect({ eleve: '' });
+    var parts = ['appreciations-lot', slug(f.matiere)].filter(function(p){ return p && p !== 'document'; });
+    return parts.length ? parts.join('-') : 'appreciations-lot';
+  }
+  function doBatchExport(kind){
+    var text = buildBatchCombinedText();
+    if(!text){ return; }
+    var filename = batchExportFilenameBase() + '.' + kind;
+    var bytes;
+    if(kind === 'txt'){ bytes = buildTxtBytes(text); }
+    else if(kind === 'pdf'){ bytes = buildPdfBytes(text); }
+    else if(kind === 'docx'){ bytes = buildDocxBytes(text); }
+    else { return; }
+
+    if(!inClaudeArtifact()){
+      try{
+        nativeDownload(filename, bytes);
+        setBatchExportMsg('Fichier téléchargé ✓', 'ok');
+      }catch(e){
+        setBatchExportMsg('Échec du téléchargement — réessayez, ou utilisez Copier tout le lot.', 'err');
+      }
+      return;
+    }
+
+    setBatchExportMsg('Préparation du fichier…');
+    ensureDownloads().then(function(downloads){
+      if(!downloads){
+        setBatchExportMsg('Export indisponible dans cette vue (page partagée publiquement) — utilisez « Copier tout le lot ».', 'err');
+        return;
+      }
+      return downloads.save({ filename: filename, data: bytes }).then(function(){
+        setBatchExportMsg('Fichier enregistré ✓', 'ok');
+      });
+    }).catch(function(err){
+      var code = err && err.code;
+      if(code === 'declined'){ setBatchExportMsg(''); }
+      else if(code === 'extension_not_enabled'){ setBatchExportMsg('Export .' + kind + ' non disponible ici — essayez Texte (.txt).', 'err'); }
+      else if(code === 'rate_limited'){ setBatchExportMsg('Un export est déjà en cours — patientez puis réessayez.', 'err'); }
+      else { setBatchExportMsg('Échec de l\'export — réessayez, ou utilisez Copier tout le lot.', 'err'); }
+    });
+  }
+  document.getElementById('batchExportTxtBtn').addEventListener('click', function(){ doBatchExport('txt'); });
+  document.getElementById('batchExportPdfBtn').addEventListener('click', function(){ doBatchExport('pdf'); });
+  document.getElementById('batchExportDocxBtn').addEventListener('click', function(){ doBatchExport('docx'); });
 
   resetOutput();
 })();
