@@ -137,6 +137,7 @@
   input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); box-shadow:var(--focus); }
   textarea{ resize:vertical; font-family:inherit; line-height:1.5; }
 
+  .hint{ font-size:0.76rem; color:var(--ink-soft); margin:8px 0 0; line-height:1.4; }
   .chip-group{ display:flex; gap:8px; flex-wrap:wrap; }
   .chip{ position:relative; }
   .chip input{ position:absolute; opacity:0; }
@@ -195,8 +196,6 @@
 
   footer{ max-width:1080px; margin:0 auto; padding:10px 24px 60px; font-size:0.76rem; color:var(--ink-soft); }
 </style>
-</head>
-<body>
 
 <div class="topbar">
   <div class="topbar-inner">
@@ -220,6 +219,31 @@
           </div>
 
           <fieldset>
+            <legend>Type de document</legend>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="typeDoc" value="bulletin" checked><span>Bulletin semestriel</span></label>
+              <label class="chip"><input type="radio" name="typeDoc" value="livret"><span>Livret scolaire (jury)</span></label>
+            </div>
+            <p class="hint">Bulletin : appréciation personnalisée (prénom, encouragements possibles). Livret scolaire : formulation neutre adressée au jury, sans encouragement — conforme à la recommandation interne CFA.</p>
+            <div class="field" id="designationField" style="display:none; margin-top:10px; margin-bottom:0;">
+              <label for="designation">Désignation utilisée dans le livret</label>
+              <select id="designation">
+                <option value="le candidat">le candidat</option>
+                <option value="la candidate">la candidate</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Profil de l'apprenant</legend>
+            <label class="chip" style="display:inline-flex; align-items:center; gap:7px; cursor:pointer;">
+              <input type="checkbox" id="fle" style="position:static; opacity:1; width:auto; margin:0;">
+              <span style="border:none; background:none; padding:0; font-size:0.85rem; color:var(--ink); font-weight:400;">Profil FLE (apprenti allophone / français langue étrangère)</span>
+            </label>
+            <p class="hint" id="fleHint" style="display:none;">Active des formulations conformes à la fiche interne FLE : on évite « barrière de la langue », « ne comprend pas le français », « niveau insuffisant », « trop faible pour suivre » — on valorise l'investissement, la progression et l'intégration. Pensez à éviter ces mêmes tournures dans le champ « détail » ci-dessous.</p>
+          </fieldset>
+
+          <fieldset>
             <legend>Résultats</legend>
             <div class="field">
               <label for="niveau">Niveau global <span class="req">*</span></label>
@@ -228,7 +252,6 @@
                 <option value="tresSatisfaisant">Très satisfaisant</option>
                 <option value="satisfaisant" selected>Satisfaisant</option>
                 <option value="fragile">Fragile</option>
-                <option value="insuffisant">Insuffisant</option>
                 <option value="difficulte">Grande difficulté</option>
               </select>
             </div>
@@ -253,7 +276,7 @@
                 <option value="tresInvesti">Très investi(e), moteur du groupe</option>
                 <option value="serieux">Sérieux et appliqué</option>
                 <option value="inegale">Participation inégale</option>
-                <option value="insuffisant">Travail insuffisant</option>
+                <option value="aRenforcer">Investissement à renforcer</option>
                 <option value="manque">Manque de travail personnel</option>
               </select>
             </div>
@@ -269,12 +292,46 @@
             </div>
           </fieldset>
 
+          <fieldset id="integrationFleFieldset" style="display:none;">
+            <legend>Intégration &amp; savoir-être (FLE)</legend>
+            <div class="field">
+              <label for="integrationFle">Élément additif (facultatif)</label>
+              <select id="integrationFle">
+                <option value="">— Non mentionné —</option>
+                <option value="integre">Intégré(e) dans le groupe, attitude positive</option>
+                <option value="respectueux">Respectueux/se et sérieux/se</option>
+                <option value="participe">Participation active, cherche à comprendre</option>
+                <option value="investi">Investi(e), sait demander de l'aide lorsque nécessaire</option>
+              </select>
+            </div>
+          </fieldset>
+
           <div class="field">
             <label for="detail">Détail propre à l'apprenant (facultatif)</label>
             <textarea id="detail" rows="2" placeholder="ex. bonne dynamique depuis le retour du stage"></textarea>
           </div>
 
-          <fieldset>
+          <fieldset id="remediationFieldset">
+            <legend>Conseils pour progresser</legend>
+            <div class="field">
+              <label for="remediation">Piste de progrès à mentionner</label>
+              <select id="remediation">
+                <option value="travailPersonnel">Travail personnel plus régulier</option>
+                <option value="concentration">Concentration / rigueur en cours</option>
+                <option value="autonomie">Prise d'initiative / autonomie</option>
+                <option value="confiance">Confiance en soi</option>
+                <option value="rattrapage">Combler les lacunes / rattraper le retard</option>
+                <option value="aide">Demander de l'aide, poser des questions</option>
+                <option value="organisation">Mieux s'organiser / suivre les consignes</option>
+                <option value="ecrit">Travail à l'écrit</option>
+                <option value="poursuite">Poursuivre les efforts engagés</option>
+                <option value="aucune">— Ne pas inclure —</option>
+              </select>
+              <p class="hint">Élément attendu par la circulaire n° 99-104 : « des conseils précis sur les moyens d'améliorer ses résultats ». Inclus par défaut dans le texte généré.</p>
+            </div>
+          </fieldset>
+
+          <fieldset id="closingFieldset">
             <legend>Formule finale</legend>
             <div class="chip-group">
               <label class="chip"><input type="radio" name="registre" value="encourageant" checked><span>Encourageante</span></label>
@@ -320,7 +377,8 @@
 </main>
 
 <footer>
-  Base de rédaction, pas un texte définitif — relisez toujours avant de valider le bulletin. Combine des formulations indépendantes par axe (résultats, investissement, comportement) : aucune n'est écrite spécifiquement pour votre apprenant, le champ « détail » est là pour ça.
+  Base de rédaction, pas un texte définitif — relisez toujours avant de valider le bulletin. Combine des formulations indépendantes par axe (résultats, investissement, comportement) : aucune n'est écrite spécifiquement pour votre apprenant, le champ « détail » est là pour ça.<br>
+  Vocabulaire et structure alignés sur la circulaire n° 99-104 du 28-6-1999 (vocabulaire réducteur banni, conseils de progrès inclus) et sur les recommandations internes de saisie Netypareo (bulletin personnalisé / livret scolaire neutre). Cela reste un point de départ à relire, pas une garantie de conformité.
 </footer>
 
 <script>
@@ -672,8 +730,19 @@ if (typeof module !== 'undefined' && module.exports){
     tresSatisfaisant: ['{E} obtient de très bons résultats{M}.', 'Très bons résultats{M} dans l\'ensemble.'],
     satisfaisant: ['{E} obtient des résultats satisfaisants{M}.', 'Résultats satisfaisants{M} dans l\'ensemble.'],
     fragile: ['{E} obtient des résultats fragiles{M}, malgré des efforts réels.', 'Résultats encore fragiles{M}, mais des points d\'appui existent.'],
-    insuffisant: ['{E} obtient des résultats insuffisants{M} ce trimestre.', 'Résultats insuffisants{M} : un travail de fond est nécessaire.'],
     difficulte: ['{E} est en grande difficulté{M} et a besoin d\'un accompagnement renforcé.', 'Résultats{M} très préoccupants, une prise en charge rapide est nécessaire.']
+  };
+
+  // Variantes FLE (apprentis allophones) — formulations issues de la fiche interne
+  // « préconisations appréciations apprentis F.L.E. » : on évite « barrière de la
+  // langue », « ne comprend pas le français », « niveau insuffisant », « trop faible
+  // pour suivre », et on valorise investissement, progression, intégration.
+  var NIVEAU_FLE = {
+    excellent: ['{E} obtient de réussites encourageantes{M} ; apprenti(e) toujours motivé(e).', 'Réussites encourageantes{M} en situation professionnelle pour {E}.'],
+    tresSatisfaisant: ['{E} est volontaire, les progrès sont réguliers dans les apprentissages{M}.', 'Progrès réguliers{M} : {E} se montre volontaire.'],
+    satisfaisant: ['{E} est en progression{M} ; continue à consolider les bases nécessaires.', 'Progression{M} à consolider, sur de bonnes bases.'],
+    fragile: ['{E} a besoin de reformulations ponctuelles{M}, mais applique les consignes.', 'Avec quelques reformulations ponctuelles{M}, {E} applique les consignes.'],
+    difficulte: ['{E} peut encore progresser dans la compréhension des consignes complexes{M} ; un accompagnement renforcé est nécessaire.', 'Un accompagnement renforcé est nécessaire{M} pour la compréhension des consignes complexes.']
   };
 
   var EVOLUTION = {
@@ -687,8 +756,8 @@ if (typeof module !== 'undefined' && module.exports){
     tresInvesti: ['{E} fait preuve d\'un investissement remarquable en classe.', 'Participation très active et investissement constant.'],
     serieux: ['Travail sérieux et appliqué tout au long de la période.', '{E} fait preuve de sérieux et d\'application.'],
     inegale: ['La participation reste inégale selon les séances.', 'L\'investissement varie encore beaucoup d\'un cours à l\'autre.'],
-    insuffisant: ['Le travail fourni reste insuffisant au regard des attentes.', 'Un investissement plus soutenu est attendu.'],
-    manque: ['Le manque de travail personnel pénalise fortement les résultats.', 'Un travail régulier à la maison est indispensable pour progresser.']
+    aRenforcer: ['L\'investissement personnel reste à renforcer pour être à la hauteur des attendus.', 'Un investissement plus soutenu au travail est attendu.'],
+    manque: ['Le manque de travail personnel pénalise les résultats.', 'Un travail régulier à la maison est indispensable pour progresser.']
   };
 
   var COMPORTEMENT = {
@@ -696,6 +765,28 @@ if (typeof module !== 'undefined' && module.exports){
     correct: ['Comportement correct en classe.', 'Attitude satisfaisante au sein du groupe.'],
     perturbe: ['Le comportement perturbe parfois le bon déroulement du cours.', '{E} doit encore progresser sur la tenue en classe.'],
     difficultes: ['Des difficultés de comportement compliquent le travail du groupe ; un rappel des règles est nécessaire.', 'L\'attitude en classe pose régulièrement problème et doit être corrigée rapidement.']
+  };
+
+  // Élément additif FLE : intégration & savoir-être (fiche interne FLE, page « comportement »)
+  var INTEGRATION_FLE = {
+    integre: ['{E} est intégré(e) dans le groupe, avec une attitude positive.', 'Bonne intégration dans le groupe pour {E}, attitude positive.'],
+    respectueux: ['{E} est respectueux/se et sérieux/se.', 'Attitude respectueuse et sérieuse.'],
+    participe: ['La participation de {E} est active, avec une réelle volonté de comprendre.', '{E} participe activement et cherche à comprendre.'],
+    investi: ['{E} est investi(e) et sait demander de l\'aide lorsque nécessaire.', 'Investissement réel : {E} sait demander de l\'aide lorsque nécessaire.']
+  };
+
+  // Conseils pour progresser — élément attendu par la circulaire n° 99-104
+  // (« des conseils précis sur les moyens d'améliorer ses résultats »).
+  var REMEDIATION = {
+    travailPersonnel: ['Un travail individuel et régulier à la maison permettrait à {E} de progresser.', 'Un travail personnel plus soutenu aiderait {E} à progresser.'],
+    concentration: ['{E} gagnerait à se concentrer davantage en cours pour être plus efficace.', 'Davantage de rigueur et d\'attention en classe permettrait à {E} de progresser.'],
+    autonomie: ['Prendre davantage d\'initiatives aiderait {E} à gagner en autonomie.', 'Développer sa prise d\'initiative permettrait à {E} de progresser plus vite.'],
+    confiance: ['{E} a les capacités nécessaires pour réussir ; prendre confiance en soi devrait l\'aider à progresser.', 'Ne pas se décourager : un travail régulier permettra à {E} de progresser.'],
+    rattrapage: ['Un investissement plus soutenu permettrait à {E} de combler ses lacunes.', 'Rattraper le retard accumulé demande, pour {E}, un travail régulier et ciblé.'],
+    aide: ['{E} est invité(e) à ne pas hésiter à demander de l\'aide et à poser des questions.', 'Solliciter les formateurs en cas de difficulté aiderait {E} à progresser.'],
+    organisation: ['Mieux prendre en compte les remarques des formateurs aiderait {E} à s\'organiser.', 'Une meilleure prise en compte des consignes permettrait à {E} de progresser.'],
+    ecrit: ['Un travail plus soutenu à l\'écrit permettrait à {E} de consolider ses acquis.', 'Accentuer les efforts à l\'écrit aiderait {E} à progresser.'],
+    poursuite: ['La poursuite des efforts engagés devrait permettre aux résultats de {E} de continuer à progresser.', 'En maintenant ce rythme de travail, les résultats de {E} devraient continuer de progresser.']
   };
 
   var CLOSING = {
@@ -712,11 +803,16 @@ if (typeof module !== 'undefined' && module.exports){
     return {
       eleve: document.getElementById('eleve').value.trim(),
       matiere: document.getElementById('matiere').value.trim(),
+      typeDoc: document.querySelector('input[name="typeDoc"]:checked').value,
+      designation: document.getElementById('designation').value,
+      fle: document.getElementById('fle').checked,
       niveau: document.getElementById('niveau').value,
       evolution: document.getElementById('evolution').value,
       investissement: document.getElementById('investissement').value,
       comportement: document.getElementById('comportement').value,
+      integrationFle: document.getElementById('integrationFle').value,
       detail: document.getElementById('detail').value.trim(),
+      remediation: document.getElementById('remediation').value,
       registre: document.querySelector('input[name="registre"]:checked').value
     };
   }
@@ -729,18 +825,22 @@ if (typeof module !== 'undefined' && module.exports){
     }
     var v = state.variant;
     var M = f.matiere ? (' en ' + f.matiere) : '';
-    var E = f.eleve;
+    var isLivret = f.typeDoc === 'livret';
+    var E = isLivret ? f.designation : f.eleve;
+    var niveauBank = f.fle ? NIVEAU_FLE : NIVEAU;
 
     var lines = [];
-    lines.push(fill(pick(NIVEAU[f.niveau], v), E).replace('{M}', M));
+    lines.push(fill(pick(niveauBank[f.niveau], v), E).replace('{M}', M));
 
     if(f.evolution){ lines.push(pick(EVOLUTION[f.evolution], v)); }
     if(f.investissement){ lines.push(fill(pick(INVESTISSEMENT[f.investissement], v), E)); }
     if(f.comportement){ lines.push(fill(pick(COMPORTEMENT[f.comportement], v), E)); }
+    if(f.fle && f.integrationFle){ lines.push(fill(pick(INTEGRATION_FLE[f.integrationFle], v), E)); }
     if(f.detail){ lines.push(cap(f.detail) + (/[.!?]$/.test(f.detail) ? '' : '.')); }
-    if(CLOSING[f.registre]){ lines.push(fill(pick(CLOSING[f.registre], v), E)); }
+    if(!isLivret && f.remediation && f.remediation !== 'aucune'){ lines.push(fill(pick(REMEDIATION[f.remediation], v), E)); }
+    if(!isLivret && CLOSING[f.registre]){ lines.push(fill(pick(CLOSING[f.registre], v), E)); }
 
-    return lines.join(' ');
+    return cap(lines.join(' '));
   }
 
   function resetOutput(){
@@ -775,6 +875,24 @@ if (typeof module !== 'undefined' && module.exports){
     setExportMsg('');
     updateCount(text);
   }
+
+  function updateModeUI(){
+    var isLivret = document.querySelector('input[name="typeDoc"]:checked').value === 'livret';
+    document.getElementById('designationField').style.display = isLivret ? '' : 'none';
+    document.getElementById('remediationFieldset').style.display = isLivret ? 'none' : '';
+    document.getElementById('closingFieldset').style.display = isLivret ? 'none' : '';
+  }
+  function updateFleUI(){
+    var on = document.getElementById('fle').checked;
+    document.getElementById('fleHint').style.display = on ? '' : 'none';
+    document.getElementById('integrationFleFieldset').style.display = on ? '' : 'none';
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="typeDoc"]'), function(el){
+    el.addEventListener('change', updateModeUI);
+  });
+  document.getElementById('fle').addEventListener('change', updateFleUI);
+  updateModeUI();
+  updateFleUI();
 
   document.getElementById('genBtn').addEventListener('click', function(){
     state.variant = 0;
