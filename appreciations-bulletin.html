@@ -241,6 +241,21 @@
               <span style="border:none; background:none; padding:0; font-size:0.85rem; color:var(--ink); font-weight:400;">Profil FLE (apprenti allophone / français langue étrangère)</span>
             </label>
             <p class="hint" id="fleHint" style="display:none;">Active des formulations conformes à la fiche interne FLE : on évite « barrière de la langue », « ne comprend pas le français », « niveau insuffisant », « trop faible pour suivre » — on valorise l'investissement, la progression et l'intégration. Pensez à éviter ces mêmes tournures dans le champ « détail » ci-dessous.</p>
+
+            <label class="chip" style="display:inline-flex; align-items:center; gap:7px; cursor:pointer; margin-top:10px;">
+              <input type="checkbox" id="rqth" style="position:static; opacity:1; width:auto; margin:0;">
+              <span style="border:none; background:none; padding:0; font-size:0.85rem; color:var(--ink); font-weight:400;">Profil RQTH / aménagements</span>
+            </label>
+            <p class="hint" id="rqthHint" style="display:none;">Le texte généré ne mentionne jamais le handicap, un trouble ou la RQTH elle-même : on évalue uniquement la performance et le comportement observés. Un élément additif neutre sur les aménagements est disponible ci-dessous si vous le souhaitez — pensez à garder le champ « détail » tout aussi neutre.</p>
+            <div class="field" id="amenagementsFieldset" style="display:none; margin-top:10px; margin-bottom:0;">
+              <label for="amenagements">Mention des aménagements (facultatif)</label>
+              <select id="amenagements">
+                <option value="">— Non mentionnée —</option>
+                <option value="suit">Suit les aménagements mis en place avec sérieux</option>
+                <option value="appuie">S'appuie efficacement sur les aménagements prévus</option>
+                <option value="favorise">Les aménagements en place favorisent une bonne progression</option>
+              </select>
+            </div>
           </fieldset>
 
           <fieldset>
@@ -288,6 +303,17 @@
                 <option value="correct">Correct</option>
                 <option value="perturbe">Perturbe parfois le cours</option>
                 <option value="difficultes">Difficultés de comportement</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="assiduite">Assiduité</label>
+              <select id="assiduite">
+                <option value="">— Non mentionnée —</option>
+                <option value="assidu">Assidu(e) et ponctuel(le)</option>
+                <option value="globalementAssidu">Globalement satisfaisante, de rares absences</option>
+                <option value="retards">Retards répétés à corriger</option>
+                <option value="absencesJustifiees">Absences (justifiées) ayant pu ralentir la progression</option>
+                <option value="absencesNombreuses">Absences nombreuses ayant nui au suivi des cours</option>
               </select>
             </div>
           </fieldset>
@@ -725,12 +751,22 @@ if (typeof module !== 'undefined' && module.exports){
 
   // ---------- phrase banks (each axis is independent — they compose, not a cross-product) ----------
 
+  // ---------- Livret scolaire (neutre, 3e personne — "le candidat" / "la candidate") ----------
   var NIVEAU = {
     excellent: ['{E} obtient des résultats excellents{M}.', 'Excellents résultats{M} pour {E}.'],
     tresSatisfaisant: ['{E} obtient de très bons résultats{M}.', 'Très bons résultats{M} dans l\'ensemble.'],
     satisfaisant: ['{E} obtient des résultats satisfaisants{M}.', 'Résultats satisfaisants{M} dans l\'ensemble.'],
     fragile: ['{E} obtient des résultats fragiles{M}, malgré des efforts réels.', 'Résultats encore fragiles{M}, mais des points d\'appui existent.'],
     difficulte: ['{E} est en grande difficulté{M} et a besoin d\'un accompagnement renforcé.', 'Résultats{M} très préoccupants, une prise en charge rapide est nécessaire.']
+  };
+
+  // ---------- Bulletin semestriel (adresse directe — "vous") ----------
+  var NIVEAU_VOUS = {
+    excellent: ['Vous obtenez des résultats excellents{M}.', 'Excellents résultats{M}, bravo pour ce travail.'],
+    tresSatisfaisant: ['Vous obtenez de très bons résultats{M}.', 'Très bons résultats{M} dans l\'ensemble, continuez ainsi.'],
+    satisfaisant: ['Vous obtenez des résultats satisfaisants{M}.', 'Résultats satisfaisants{M} dans l\'ensemble.'],
+    fragile: ['Vous obtenez des résultats fragiles{M}, malgré des efforts réels.', 'Résultats encore fragiles{M}, mais des points d\'appui existent.'],
+    difficulte: ['Vous êtes en grande difficulté{M} et avez besoin d\'un accompagnement renforcé.', 'Résultats{M} très préoccupants, une prise en charge rapide est nécessaire.']
   };
 
   // Variantes FLE (apprentis allophones) — formulations issues de la fiche interne
@@ -743,6 +779,13 @@ if (typeof module !== 'undefined' && module.exports){
     satisfaisant: ['{E} est en progression{M} ; continue à consolider les bases nécessaires.', 'Progression{M} à consolider, sur de bonnes bases.'],
     fragile: ['{E} a besoin de reformulations ponctuelles{M}, mais applique les consignes.', 'Avec quelques reformulations ponctuelles{M}, {E} applique les consignes.'],
     difficulte: ['{E} peut encore progresser dans la compréhension des consignes complexes{M} ; un accompagnement renforcé est nécessaire.', 'Un accompagnement renforcé est nécessaire{M} pour la compréhension des consignes complexes.']
+  };
+  var NIVEAU_FLE_VOUS = {
+    excellent: ['Vous obtenez des réussites encourageantes{M} ; toujours motivé(e).', 'Réussites encourageantes{M} en situation professionnelle.'],
+    tresSatisfaisant: ['Vous êtes volontaire, vos progrès sont réguliers dans les apprentissages{M}.', 'Progrès réguliers{M} : vous vous montrez volontaire.'],
+    satisfaisant: ['Vous êtes en progression{M} ; continuez à consolider les bases nécessaires.', 'Progression{M} à consolider, sur de bonnes bases.'],
+    fragile: ['Vous avez besoin de reformulations ponctuelles{M}, mais vous appliquez les consignes.', 'Avec quelques reformulations ponctuelles{M}, vous appliquez les consignes.'],
+    difficulte: ['Vous pouvez encore progresser dans la compréhension des consignes complexes{M} ; un accompagnement renforcé est nécessaire.', 'Un accompagnement renforcé est nécessaire{M} pour la compréhension des consignes complexes.']
   };
 
   var EVOLUTION = {
@@ -759,12 +802,42 @@ if (typeof module !== 'undefined' && module.exports){
     aRenforcer: ['L\'investissement personnel reste à renforcer pour être à la hauteur des attendus.', 'Un investissement plus soutenu au travail est attendu.'],
     manque: ['Le manque de travail personnel pénalise les résultats.', 'Un travail régulier à la maison est indispensable pour progresser.']
   };
+  var INVESTISSEMENT_VOUS = {
+    tresInvesti: ['Vous faites preuve d\'un investissement remarquable en classe.', 'Participation très active et investissement constant.'],
+    serieux: ['Travail sérieux et appliqué tout au long de la période.', 'Vous faites preuve de sérieux et d\'application.'],
+    inegale: ['Votre participation reste inégale selon les séances.', 'Votre investissement varie encore beaucoup d\'un cours à l\'autre.'],
+    aRenforcer: ['Votre investissement personnel reste à renforcer pour être à la hauteur des attendus.', 'Un investissement plus soutenu de votre part est attendu.'],
+    manque: ['Le manque de travail personnel pénalise vos résultats.', 'Un travail régulier à la maison est indispensable pour progresser.']
+  };
 
   var COMPORTEMENT = {
     exemplaire: ['Comportement exemplaire, {E} est un élément moteur du groupe.', 'Attitude exemplaire en classe.'],
     correct: ['Comportement correct en classe.', 'Attitude satisfaisante au sein du groupe.'],
     perturbe: ['Le comportement perturbe parfois le bon déroulement du cours.', '{E} doit encore progresser sur la tenue en classe.'],
     difficultes: ['Des difficultés de comportement compliquent le travail du groupe ; un rappel des règles est nécessaire.', 'L\'attitude en classe pose régulièrement problème et doit être corrigée rapidement.']
+  };
+  var COMPORTEMENT_VOUS = {
+    exemplaire: ['Comportement exemplaire, vous êtes un élément moteur du groupe.', 'Attitude exemplaire en classe.'],
+    correct: ['Comportement correct en classe.', 'Attitude satisfaisante au sein du groupe.'],
+    perturbe: ['Votre comportement perturbe parfois le bon déroulement du cours.', 'Vous devez encore progresser sur la tenue en classe.'],
+    difficultes: ['Des difficultés de comportement compliquent le travail du groupe ; un rappel des règles est nécessaire.', 'Votre attitude en classe pose régulièrement problème et doit être corrigée rapidement.']
+  };
+
+  // Assiduité — la dernière option reprend la formulation-exemple de la circulaire
+  // n° 99-104 (« des absences nombreuses qui n'ont pas permis de suivre correctement les cours »).
+  var ASSIDUITE = {
+    assidu: ['{E} est assidu(e) et ponctuel(le).', 'Assiduité et ponctualité exemplaires.'],
+    globalementAssidu: ['Assiduité globalement satisfaisante{M}, avec de rares absences signalées.', '{E} est globalement assidu(e), avec de rares absences signalées.'],
+    retards: ['Des retards répétés ont perturbé le suivi ; une plus grande ponctualité est attendue.', '{E} doit veiller à une plus grande ponctualité.'],
+    absencesJustifiees: ['Des absences, toutes justifiées, ont pu ralentir la progression.', 'Malgré des absences justifiées, {E} a pu suivre l\'essentiel du programme.'],
+    absencesNombreuses: ['Des absences nombreuses n\'ont pas permis à {E} de suivre correctement les cours.', 'Des absences nombreuses ont nui au suivi des cours.']
+  };
+  var ASSIDUITE_VOUS = {
+    assidu: ['Vous êtes assidu(e) et ponctuel(le).', 'Assiduité et ponctualité exemplaires.'],
+    globalementAssidu: ['Votre assiduité est globalement satisfaisante{M}, avec de rares absences signalées.', 'Vous êtes globalement assidu(e), avec de rares absences signalées.'],
+    retards: ['Des retards répétés ont perturbé votre suivi ; une plus grande ponctualité est attendue.', 'Veillez à une plus grande ponctualité.'],
+    absencesJustifiees: ['Des absences, toutes justifiées, ont pu ralentir votre progression.', 'Malgré des absences justifiées, vous avez pu suivre l\'essentiel du programme.'],
+    absencesNombreuses: ['Vos absences nombreuses ne vous ont pas permis de suivre correctement les cours.', 'Des absences nombreuses ont nui au suivi des cours.']
   };
 
   // Élément additif FLE : intégration & savoir-être (fiche interne FLE, page « comportement »)
@@ -774,25 +847,45 @@ if (typeof module !== 'undefined' && module.exports){
     participe: ['La participation de {E} est active, avec une réelle volonté de comprendre.', '{E} participe activement et cherche à comprendre.'],
     investi: ['{E} est investi(e) et sait demander de l\'aide lorsque nécessaire.', 'Investissement réel : {E} sait demander de l\'aide lorsque nécessaire.']
   };
+  var INTEGRATION_FLE_VOUS = {
+    integre: ['Vous êtes intégré(e) dans le groupe, avec une attitude positive.', 'Bonne intégration dans le groupe, attitude positive.'],
+    respectueux: ['Vous êtes respectueux/se et sérieux/se.', 'Attitude respectueuse et sérieuse.'],
+    participe: ['Votre participation est active, avec une réelle volonté de comprendre.', 'Vous participez activement et cherchez à comprendre.'],
+    investi: ['Vous êtes investi(e) et savez demander de l\'aide lorsque nécessaire.', 'Investissement réel : vous savez demander de l\'aide lorsque nécessaire.']
+  };
+
+  // Élément additif RQTH : mention neutre des aménagements, jamais du handicap/trouble lui-même.
+  var AMENAGEMENTS = {
+    suit: ['{E} suit les aménagements mis en place avec sérieux.', 'Les aménagements mis en place sont suivis avec sérieux.'],
+    appuie: ['{E} s\'appuie efficacement sur les aménagements prévus.', 'Bon appui sur les aménagements prévus.'],
+    favorise: ['Les aménagements en place favorisent une bonne progression{M}.', 'Une bonne progression{M}, favorisée par les aménagements en place.']
+  };
+  var AMENAGEMENTS_VOUS = {
+    suit: ['Vous suivez les aménagements mis en place avec sérieux.', 'Les aménagements mis en place sont suivis avec sérieux.'],
+    appuie: ['Vous vous appuyez efficacement sur les aménagements prévus.', 'Bon appui sur les aménagements prévus.'],
+    favorise: ['Les aménagements en place favorisent votre progression{M}.', 'Une bonne progression{M}, favorisée par les aménagements en place.']
+  };
 
   // Conseils pour progresser — élément attendu par la circulaire n° 99-104
-  // (« des conseils précis sur les moyens d'améliorer ses résultats »).
+  // (« des conseils précis sur les moyens d'améliorer ses résultats »). Uniquement
+  // utilisé pour le bulletin semestriel (adresse directe, à l'image des exemples
+  // ministériels : « Concentrez-vous… », « Investissez-vous… »).
   var REMEDIATION = {
-    travailPersonnel: ['Un travail individuel et régulier à la maison permettrait à {E} de progresser.', 'Un travail personnel plus soutenu aiderait {E} à progresser.'],
-    concentration: ['{E} gagnerait à se concentrer davantage en cours pour être plus efficace.', 'Davantage de rigueur et d\'attention en classe permettrait à {E} de progresser.'],
-    autonomie: ['Prendre davantage d\'initiatives aiderait {E} à gagner en autonomie.', 'Développer sa prise d\'initiative permettrait à {E} de progresser plus vite.'],
-    confiance: ['{E} a les capacités nécessaires pour réussir ; prendre confiance en soi devrait l\'aider à progresser.', 'Ne pas se décourager : un travail régulier permettra à {E} de progresser.'],
-    rattrapage: ['Un investissement plus soutenu permettrait à {E} de combler ses lacunes.', 'Rattraper le retard accumulé demande, pour {E}, un travail régulier et ciblé.'],
-    aide: ['{E} est invité(e) à ne pas hésiter à demander de l\'aide et à poser des questions.', 'Solliciter les formateurs en cas de difficulté aiderait {E} à progresser.'],
-    organisation: ['Mieux prendre en compte les remarques des formateurs aiderait {E} à s\'organiser.', 'Une meilleure prise en compte des consignes permettrait à {E} de progresser.'],
-    ecrit: ['Un travail plus soutenu à l\'écrit permettrait à {E} de consolider ses acquis.', 'Accentuer les efforts à l\'écrit aiderait {E} à progresser.'],
-    poursuite: ['La poursuite des efforts engagés devrait permettre aux résultats de {E} de continuer à progresser.', 'En maintenant ce rythme de travail, les résultats de {E} devraient continuer de progresser.']
+    travailPersonnel: ['Un travail individuel et régulier à la maison vous permettrait de progresser.', 'Il faudrait fournir plus de travail personnel.'],
+    concentration: ['Concentrez-vous davantage pour être plus efficace dans votre travail.', 'Davantage de rigueur et d\'attention en classe vous permettrait de progresser.'],
+    autonomie: ['Prenez des initiatives afin de gagner en autonomie.', 'Développer votre prise d\'initiative vous permettrait de progresser plus vite.'],
+    confiance: ['Prenez confiance en vous, vous avez les capacités nécessaires pour réussir.', 'Ne vous découragez pas : un travail régulier vous permettra de progresser.'],
+    rattrapage: ['Investissez-vous davantage afin de combler vos lacunes.', 'Rattraper le retard accumulé demande un travail régulier et ciblé.'],
+    aide: ['N\'hésitez pas à demander de l\'aide et à poser des questions.', 'Sollicitez vos formateurs en cas de difficulté.'],
+    organisation: ['Prenez en compte les remarques de vos formateurs afin de mieux vous organiser.', 'Une meilleure prise en compte des consignes vous permettrait de progresser.'],
+    ecrit: ['Un travail plus soutenu à l\'écrit vous permettrait de consolider vos acquis.', 'Accentuez vos efforts à l\'écrit.'],
+    poursuite: ['Poursuivez vos efforts, vos résultats devraient continuer de progresser.', 'En maintenant ce rythme de travail, vos résultats devraient continuer de progresser.']
   };
 
   var CLOSING = {
-    encourageant: ['J\'encourage {E} à poursuivre dans cette voie.', 'À poursuivre ainsi, les efforts paient.'],
-    neutre: ['À poursuivre dans cette dynamique.', 'Poursuivre les efforts engagés.'],
-    vigilant: ['Une mobilisation plus importante est attendue au prochain trimestre.', 'Sans changement rapide, la suite de l\'année sera difficile.'],
+    encourageant: ['Je vous encourage à poursuivre dans cette voie.', 'Poursuivez ainsi, vos efforts paient.'],
+    neutre: ['À poursuivre dans cette dynamique.', 'Poursuivez les efforts engagés.'],
+    vigilant: ['Une mobilisation plus importante est attendue de votre part au prochain trimestre.', 'Sans changement rapide, la suite de l\'année sera difficile.'],
     aucune: null
   };
 
@@ -806,11 +899,14 @@ if (typeof module !== 'undefined' && module.exports){
       typeDoc: document.querySelector('input[name="typeDoc"]:checked').value,
       designation: document.getElementById('designation').value,
       fle: document.getElementById('fle').checked,
+      rqth: document.getElementById('rqth').checked,
       niveau: document.getElementById('niveau').value,
       evolution: document.getElementById('evolution').value,
       investissement: document.getElementById('investissement').value,
       comportement: document.getElementById('comportement').value,
+      assiduite: document.getElementById('assiduite').value,
       integrationFle: document.getElementById('integrationFle').value,
+      amenagements: document.getElementById('amenagements').value,
       detail: document.getElementById('detail').value.trim(),
       remediation: document.getElementById('remediation').value,
       registre: document.querySelector('input[name="registre"]:checked').value
@@ -826,21 +922,29 @@ if (typeof module !== 'undefined' && module.exports){
     var v = state.variant;
     var M = f.matiere ? (' en ' + f.matiere) : '';
     var isLivret = f.typeDoc === 'livret';
-    var E = isLivret ? f.designation : f.eleve;
-    var niveauBank = f.fle ? NIVEAU_FLE : NIVEAU;
+    var E = isLivret ? f.designation : null;
+
+    var niveauBank = isLivret ? (f.fle ? NIVEAU_FLE : NIVEAU) : (f.fle ? NIVEAU_FLE_VOUS : NIVEAU_VOUS);
+    var investissementBank = isLivret ? INVESTISSEMENT : INVESTISSEMENT_VOUS;
+    var comportementBank = isLivret ? COMPORTEMENT : COMPORTEMENT_VOUS;
+    var assiduiteBank = isLivret ? ASSIDUITE : ASSIDUITE_VOUS;
+    var integrationFleBank = isLivret ? INTEGRATION_FLE : INTEGRATION_FLE_VOUS;
+    var amenagementsBank = isLivret ? AMENAGEMENTS : AMENAGEMENTS_VOUS;
 
     var lines = [];
     lines.push(fill(pick(niveauBank[f.niveau], v), E).replace('{M}', M));
 
     if(f.evolution){ lines.push(pick(EVOLUTION[f.evolution], v)); }
-    if(f.investissement){ lines.push(fill(pick(INVESTISSEMENT[f.investissement], v), E)); }
-    if(f.comportement){ lines.push(fill(pick(COMPORTEMENT[f.comportement], v), E)); }
-    if(f.fle && f.integrationFle){ lines.push(fill(pick(INTEGRATION_FLE[f.integrationFle], v), E)); }
+    if(f.investissement){ lines.push(fill(pick(investissementBank[f.investissement], v), E)); }
+    if(f.comportement){ lines.push(fill(pick(comportementBank[f.comportement], v), E)); }
+    if(f.assiduite){ lines.push(fill(pick(assiduiteBank[f.assiduite], v), E).replace('{M}', M)); }
+    if(f.fle && f.integrationFle){ lines.push(fill(pick(integrationFleBank[f.integrationFle], v), E)); }
+    if(f.rqth && f.amenagements){ lines.push(fill(pick(amenagementsBank[f.amenagements], v), E).replace('{M}', M)); }
     if(f.detail){ lines.push(cap(f.detail) + (/[.!?]$/.test(f.detail) ? '' : '.')); }
-    if(!isLivret && f.remediation && f.remediation !== 'aucune'){ lines.push(fill(pick(REMEDIATION[f.remediation], v), E)); }
-    if(!isLivret && CLOSING[f.registre]){ lines.push(fill(pick(CLOSING[f.registre], v), E)); }
+    if(!isLivret && f.remediation && f.remediation !== 'aucune'){ lines.push(pick(REMEDIATION[f.remediation], v)); }
+    if(!isLivret && CLOSING[f.registre]){ lines.push(pick(CLOSING[f.registre], v)); }
 
-    return cap(lines.join(' '));
+    return lines.map(cap).join(' ');
   }
 
   function resetOutput(){
@@ -887,12 +991,19 @@ if (typeof module !== 'undefined' && module.exports){
     document.getElementById('fleHint').style.display = on ? '' : 'none';
     document.getElementById('integrationFleFieldset').style.display = on ? '' : 'none';
   }
+  function updateRqthUI(){
+    var on = document.getElementById('rqth').checked;
+    document.getElementById('rqthHint').style.display = on ? '' : 'none';
+    document.getElementById('amenagementsFieldset').style.display = on ? '' : 'none';
+  }
   Array.prototype.forEach.call(document.querySelectorAll('input[name="typeDoc"]'), function(el){
     el.addEventListener('change', updateModeUI);
   });
   document.getElementById('fle').addEventListener('change', updateFleUI);
+  document.getElementById('rqth').addEventListener('change', updateRqthUI);
   updateModeUI();
   updateFleUI();
+  updateRqthUI();
 
   document.getElementById('genBtn').addEventListener('click', function(){
     state.variant = 0;
