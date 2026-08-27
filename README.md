@@ -30,3 +30,23 @@ Chaque outil est un fichier HTML autonome (CSS et JS inclus, aucune dépendance
 externe hormis Google Fonts). Pour ajouter un outil : déposer le nouveau fichier
 `.html` dans ce dépôt et ajouter une carte correspondante dans `index.html`. Pour
 corriger un outil existant : remplacer le fichier du même nom.
+
+Tout outil doit inclure, en haut de sa page (dans la barre `.topbar`, juste
+au-dessus du titre `.brand`), un lien de retour vers l'accueil, pour que
+l'enseignant puisse toujours revenir choisir un autre outil :
+
+```html
+<a class="back-link" href="index.html">← Boîte à outils</a>
+```
+
+avec le style correspondant (déjà présent dans les outils existants, à copier
+tel quel dans le nouveau fichier) :
+
+```css
+.back-link{
+  display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:0.72rem;
+  color:var(--accent); text-decoration:none; letter-spacing:0.02em; margin-bottom:6px;
+}
+.back-link:hover{ text-decoration:underline; }
+.back-link:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+```

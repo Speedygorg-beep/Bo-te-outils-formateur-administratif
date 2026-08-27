@@ -84,6 +84,14 @@
   .brand{ font-family:'Newsreader', Georgia, serif; font-style:italic; font-weight:600; font-size:1.2rem; }
   .brand-sub{ font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--ink-soft); letter-spacing:0.04em; }
 
+
+  .back-link{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:0.72rem;
+    color:var(--accent); text-decoration:none; letter-spacing:0.02em; margin-bottom:6px;
+  }
+  .back-link:hover{ text-decoration:underline; }
+  .back-link:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+
   main{ max-width:1080px; margin:0 auto; padding:28px 24px 70px; }
 
   .layout{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
@@ -188,6 +196,7 @@
 <div class="topbar">
   <div class="topbar-inner">
     <div>
+      <a class="back-link" href="index.html">← Boîte à outils</a>
       <div class="brand">Appréciations bulletin</div>
     </div>
     <div class="brand-sub">Rien n'est envoyé nulle part — tout reste dans cette page.</div>
