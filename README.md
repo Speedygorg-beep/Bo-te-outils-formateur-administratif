@@ -18,7 +18,7 @@ documents administratifs prêts à copier ou à exporter (PDF / Word / texte).
 - **Appréciations bulletin** (`appreciations-bulletin.html`) — appréciation composée
   à partir des résultats, de l'investissement et du comportement de l'apprenant
 - **Assistant cahier de textes** (`assistant-cahier-textes.html`) — met en forme le
-  contenu de séance et le travail à faire, prêt à coller dans Pronote
+  contenu de séance et le travail à faire, prêt à coller dans Yparéo
 
 ## Utiliser ce site
 
