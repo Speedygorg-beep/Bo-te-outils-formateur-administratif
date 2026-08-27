@@ -44,9 +44,18 @@ tel quel dans le nouveau fichier) :
 
 ```css
 .back-link{
-  display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:0.72rem;
-  color:var(--accent); text-decoration:none; letter-spacing:0.02em; margin-bottom:6px;
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:0.88rem;
+  color:var(--accent); text-decoration:none;
+  background:var(--accent-soft); border:1px solid var(--accent);
+  padding:7px 16px; border-radius:999px;
+  margin-bottom:12px;
+  transition: background .15s ease, color .15s ease;
 }
-.back-link:hover{ text-decoration:underline; }
-.back-link:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+.back-link:hover{ background:var(--accent); color:var(--accent-ink); }
+.back-link:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
 ```
+
+(nécessite que la page définisse aussi `--accent-ink`, déjà présent dans les
+outils existants — copier ces variables si le nouvel outil part d'une palette
+différente.)
