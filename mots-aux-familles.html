@@ -785,7 +785,7 @@ if (typeof module !== 'undefined' && module.exports){
       fields: [
         { id:'motif', label:'Motif', type:'select', options:[
           ['sante','Raison de santé'], ['rdv','Rendez-vous médical / administratif'],
-          ['famille','Motif familial'], ['pfmp','Période de formation en milieu professionnel (PFMP)'],
+          ['famille','Motif familial'], ['entreprise','Période en entreprise'],
           ['autre','Autre (préciser ci-dessous)']
         ]},
         { id:'motifLibre', label:'Précision (si "autre")', type:'text', placeholder:'facultatif' },
@@ -797,7 +797,7 @@ if (typeof module !== 'undefined' && module.exports){
       build: function(f, tone, v, sig){
         var motifClauses = {
           sante:'pour raison de santé', rdv:'pour un rendez-vous médical ou administratif',
-          famille:'pour un motif familial', pfmp:'durant sa période de formation en milieu professionnel (PFMP)',
+          famille:'pour un motif familial', entreprise:'durant sa période en entreprise',
           autre: f.motifLibre ? f.motifLibre : 'pour un motif personnel'
         };
         var motif = motifClauses[f.motif] || motifClauses.sante;
@@ -933,7 +933,7 @@ if (typeof module !== 'undefined' && module.exports){
           ['individuel','Rendez-vous individuel avec vous'],
           ['equipe','Réunion avec l\'équipe pédagogique'],
           ['discipline','Conseil de discipline'],
-          ['pfmp','Point d\'étape sur la PFMP / le stage']
+          ['entreprise','Point d\'étape sur la période en entreprise']
         ]},
         { id:'motifLibre', label:'Précision (facultatif)', type:'text', placeholder:'ex. faire le point avant le conseil de classe' },
         { id:'date', label:'Date proposée', type:'date' },
@@ -946,7 +946,7 @@ if (typeof module !== 'undefined' && module.exports){
           individuel:'Je souhaiterais vous rencontrer afin d\'échanger avec vous sur sa scolarité.',
           equipe:'L\'équipe pédagogique souhaiterait faire un point avec vous sur sa situation.',
           discipline:'Je vous informe qu\'un conseil de discipline est prévu concernant ' + (f.eleve||'votre enfant') + '.',
-          pfmp:'Je souhaiterais faire un point avec vous sur le déroulement de sa PFMP.'
+          entreprise:'Je souhaiterais faire un point avec vous sur le déroulement de sa période en entreprise.'
         };
         var lines = [];
         lines.push('Je me permets de vous solliciter au sujet de ' + full(f.eleve,f.nom) + ', apprenant de la classe ' + (f.classe||'—') + '.');

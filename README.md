@@ -19,7 +19,7 @@ documents administratifs prêts à copier ou à exporter (PDF / Word / texte).
   à partir des résultats, de l'investissement et du comportement de l'apprenant
 - **Assistant cahier de textes** (`assistant-cahier-textes.html`) — met en forme le
   contenu de séance et le travail à faire, prêt à coller dans Yparéo
-- **Compte-rendu de visite PFMP** (`compte-rendu-visite-pfmp.html`) — missions
+- **Compte-rendu de visite en entreprise** (`compte-rendu-visite-entreprise.html`) — missions
   observées, bilan, points de vigilance et actions à mener en visite d'entreprise
 - **Adaptateur de mise en page** (`adaptateur-mise-en-page.html`) — reprend un
   texte collé et adapte sa présentation (police, taille, espacements, fond de

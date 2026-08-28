@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compte-rendu de visite en entreprise</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#f1f0e9;
+    --surface:#fbfaf5;
+    --surface-2:#ffffff;
+    --ink:#22231f;
+    --ink-soft:#63645a;
+    --line:#d8d6c9;
+    --accent:#3e5c76;
+    --accent-soft:#e2e8ed;
+    --accent-ink:#ffffff;
+    --ok:#4b8763;
+    --ok-soft:#e2ede6;
+    --err:#b4573e;
+    --shadow: 0 1px 2px rgba(34,35,31,0.06), 0 6px 16px rgba(34,35,31,0.05);
+    --focus: 0 0 0 3px rgba(62,92,118,0.28);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1c1e1b;
+      --surface:#242621;
+      --surface-2:#2b2d27;
+      --ink:#ebe9df;
+      --ink-soft:#a6a79b;
+      --line:#3a3c36;
+      --accent:#93b3ca;
+      --accent-soft:#2a3540;
+      --accent-ink:#12181c;
+      --ok:#79b891;
+      --ok-soft:#25352a;
+      --err:#dd8468;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.3);
+      --focus: 0 0 0 3px rgba(147,179,202,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1c1e1b;
+    --surface:#242621;
+    --surface-2:#2b2d27;
+    --ink:#ebe9df;
+    --ink-soft:#a6a79b;
+    --line:#3a3c36;
+    --accent:#93b3ca;
+    --accent-soft:#2a3540;
+    --accent-ink:#12181c;
+    --ok:#79b891;
+    --ok-soft:#25352a;
+    --err:#dd8468;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.3);
+    --focus: 0 0 0 3px rgba(147,179,202,0.35);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  .topbar{ border-bottom:1px solid var(--line); padding:16px 24px; }
+  .topbar-inner{
+    max-width:1080px; margin:0 auto;
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  .brand{ font-family:'Newsreader', Georgia, serif; font-style:italic; font-weight:600; font-size:1.2rem; }
+  .brand-sub{ font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--ink-soft); letter-spacing:0.04em; }
+
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:0.88rem;
+    color:var(--accent); text-decoration:none;
+    background:var(--accent-soft); border:1px solid var(--accent);
+    padding:7px 16px; border-radius:999px;
+    margin-bottom:12px;
+    transition: background .15s ease, color .15s ease;
+  }
+  .back-link:hover{ background:var(--accent); color:var(--accent-ink); }
+  .back-link:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+  main{ max-width:1080px; margin:0 auto; padding:28px 24px 70px; }
+
+  .layout{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
+  @media (max-width:860px){ .layout{ grid-template-columns:1fr; } }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .panel-head{
+    padding:14px 18px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .panel-head h2{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--ink-soft); margin:0; font-weight:600;
+  }
+  .panel-body{ padding:18px; }
+
+  label{ display:block; font-size:0.76rem; color:var(--ink-soft); margin-bottom:5px; }
+  .req{ color:var(--accent); }
+  .hint{ font-size:0.72rem; color:var(--ink-soft); margin:-2px 0 6px; }
+  .field{ margin-bottom:14px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:520px){ .field-row{ grid-template-columns:1fr; } }
+
+  fieldset{ border:none; padding:0; margin:0 0 18px; }
+  fieldset legend{
+    font-family:'IBM Plex Mono', monospace; font-size:0.7rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--accent); padding:0 0 8px; width:100%;
+    border-bottom:1px solid var(--line); margin-bottom:12px;
+  }
+
+  input[type="text"], input[type="date"], select, textarea{
+    width:100%; font-family:'IBM Plex Sans', sans-serif; font-size:0.92rem; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:7px; padding:9px 10px;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); box-shadow:var(--focus); }
+  textarea{ resize:vertical; font-family:inherit; line-height:1.5; }
+
+  .chip-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ position:relative; }
+  .chip input{ position:absolute; opacity:0; }
+  .chip span{
+    display:inline-block; font-size:0.82rem; border:1px solid var(--line); background:var(--surface-2);
+    color:var(--ink-soft); padding:8px 13px; border-radius:8px; cursor:pointer; line-height:1.3;
+  }
+  .chip input:checked + span{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .chip input:focus-visible + span{ box-shadow:var(--focus); }
+
+  .btn{
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:0.88rem;
+    border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink);
+    padding:11px 18px; border-radius:8px; cursor:pointer; width:100%;
+  }
+  .btn:hover{ filter:brightness(1.06); }
+  .btn:focus-visible{ outline:none; box-shadow:var(--focus); }
+  .btn-ghost{ background:transparent; color:var(--accent); width:auto; padding:8px 12px; font-size:0.8rem; }
+  .btn-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+
+  @keyframes panelFlash{
+    0%{ outline-color: transparent; }
+    20%{ outline-color: var(--accent); }
+    100%{ outline-color: transparent; }
+  }
+  .panel.just-generated{
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+    animation: panelFlash 1.4s ease-out;
+  }
+  .output-empty{
+    color:var(--ink-soft); font-size:0.88rem; padding:30px 6px; text-align:center;
+    border:1px dashed var(--line); border-radius:8px;
+  }
+  #reportOut{ width:100%; min-height:380px; white-space:pre-wrap; }
+  .copied-msg{ font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--ok); opacity:0; transition:opacity .2s ease; }
+  .copied-msg.show{ opacity:1; }
+
+  .export-row{ margin-top:6px; padding-top:10px; border-top:1px dashed var(--line); }
+  .export-label{
+    font-family:'IBM Plex Mono', monospace; font-size:0.66rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--ink-soft); display:block; margin-bottom:8px;
+  }
+  .export-msg{ font-size:0.78rem; margin-top:8px; min-height:1.1em; }
+  .export-msg.ok{ color:var(--ok); }
+  .export-msg.err{ color:var(--err); }
+
+  footer{ max-width:1080px; margin:0 auto; padding:10px 24px 60px; font-size:0.76rem; color:var(--ink-soft); }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <a class="back-link" href="index.html">← Boîte à outils</a>
+      <div class="brand">Compte-rendu de visite en entreprise</div>
+    </div>
+    <div class="brand-sub">Rien n'est envoyé nulle part — tout reste dans cette page.</div>
+  </div>
+</div>
+
+<main>
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-head"><h2>1 — Remplir</h2></div>
+      <div class="panel-body">
+        <form id="fieldForm">
+          <div class="field-row">
+            <div class="field"><label for="date">Date de la visite <span class="req">*</span></label><input type="date" id="date"></div>
+            <div class="field"><label for="apprenant">Apprenant <span class="req">*</span></label><input type="text" id="apprenant" placeholder="Léa Bernard"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="classe">Classe / formation <span class="req">*</span></label><input type="text" id="classe" placeholder="2nde MRC 3, ou 1CAP EVS"></div>
+            <div class="field"><label for="entreprise">Entreprise <span class="req">*</span></label><input type="text" id="entreprise" placeholder="ex. Boulangerie Martin"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="tuteur">Maître d'apprentissage / tuteur (facultatif)</label><input type="text" id="tuteur" placeholder="ex. M. Dupont, gérant"></div>
+            <div class="field"><label for="presents">Personnes présentes (facultatif)</label><input type="text" id="presents" placeholder="ex. apprenant, tuteur, formateur référent"></div>
+          </div>
+
+          <div class="field">
+            <label for="missions">Missions observées / activités actuelles <span class="req">*</span></label>
+            <div class="hint">Un point par ligne (ou séparés par « ; ») — c'est juste mis en forme, rien n'est réécrit.</div>
+            <textarea id="missions" rows="3" placeholder="Accueil client&#10;Préparation des commandes&#10;Utilisation de la caisse"></textarea>
+          </div>
+
+          <fieldset>
+            <legend>Bilan de la visite</legend>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="bilan" value="tresPositif"><span>Très positif</span></label>
+              <label class="chip"><input type="radio" name="bilan" value="positif" checked><span>Positif</span></label>
+              <label class="chip"><input type="radio" name="bilan" value="satisfaisant"><span>Satisfaisant, vigilance</span></label>
+              <label class="chip"><input type="radio" name="bilan" value="difficulte"><span>Difficultés à corriger</span></label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="positifs">Points positifs (facultatif)</label>
+            <textarea id="positifs" rows="2" placeholder="Un point par ligne"></textarea>
+          </div>
+          <div class="field">
+            <label for="vigilance">Points de vigilance (facultatif)</label>
+            <textarea id="vigilance" rows="2" placeholder="Un point par ligne"></textarea>
+          </div>
+          <div class="field">
+            <label for="actions">Actions à mener (facultatif)</label>
+            <textarea id="actions" rows="2" placeholder="Un point par ligne"></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field"><label for="prochaineVisite">Prochaine visite prévue (facultatif)</label><input type="date" id="prochaineVisite"></div>
+            <div class="field"><label for="remarque">Remarque libre (facultatif)</label><input type="text" id="remarque" placeholder="ex. contrat à renouveler en juin"></div>
+          </div>
+
+          <button type="button" class="btn" id="genBtn">Générer le compte-rendu</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel" id="outputPanel">
+      <div class="panel-head">
+        <h2>2 — Relire &amp; copier</h2>
+        <span class="copied-msg" id="copiedMsg">Copié ✓</span>
+      </div>
+      <div class="panel-body">
+        <div class="output-empty" id="emptyState">Renseignez au moins la date, l'apprenant, la formation, l'entreprise et les missions observées, puis cliquez sur « Générer le compte-rendu ». Le texte s'affiche ici, modifiable avant l'archivage.</div>
+        <textarea id="reportOut" style="display:none"></textarea>
+        <div class="btn-row" id="outActions" style="display:none">
+          <button type="button" class="btn btn-ghost" id="copyBtn">Copier le texte</button>
+          <button type="button" class="btn btn-ghost" id="variantBtn">Autre formulation du bilan</button>
+        </div>
+        <div class="export-row" id="exportRow" style="display:none">
+          <span class="export-label">Exporter le fichier</span>
+          <div class="btn-row">
+            <button type="button" class="btn btn-ghost" id="exportTxtBtn">Texte (.txt)</button>
+            <button type="button" class="btn btn-ghost" id="exportPdfBtn">PDF</button>
+            <button type="button" class="btn btn-ghost" id="exportDocxBtn">Word (.docx)</button>
+          </div>
+          <div class="export-msg" id="exportMsg"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Base de compte-rendu, pas un document définitif — relisez toujours avant l'archivage. Seule la phrase de bilan d'ouverture est une formulation parmi d'autres (bouton « Autre formulation ») ; les sections détaillées reprennent exactement votre saisie, simplement mises en forme.
+</footer>
+
+<script>
+/* export-utils.js — pure client-side TXT / DOCX / PDF generation, no dependencies.
+   Works unmodified in a browser <script> tag and in Node (for testing) via the
+   guarded module.exports at the bottom. */
+
+/* ============================== CRC32 (for zip/docx) ============================== */
+var CRC_TABLE = (function(){
+  var table = new Uint32Array(256);
+  for (var n = 0; n < 256; n++){
+    var c = n;
+    for (var k = 0; k < 8; k++){ c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+function crc32(bytes){
+  var crc = 0xFFFFFFFF;
+  for (var i = 0; i < bytes.length; i++){
+    crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+/* ============================== little-endian byte writer ============================== */
+function ByteWriter(){
+  this.chunks = [];
+  this.length = 0;
+}
+ByteWriter.prototype.pushBytes = function(u8){ this.chunks.push(u8); this.length += u8.length; };
+ByteWriter.prototype.pushU16 = function(v){ this.pushBytes(new Uint8Array([v & 0xFF, (v >>> 8) & 0xFF])); };
+ByteWriter.prototype.pushU32 = function(v){ this.pushBytes(new Uint8Array([v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF])); };
+ByteWriter.prototype.pushStr = function(s){ this.pushBytes(new TextEncoder().encode(s)); };
+ByteWriter.prototype.toBytes = function(){
+  var out = new Uint8Array(this.length);
+  var off = 0;
+  for (var i = 0; i < this.chunks.length; i++){ out.set(this.chunks[i], off); off += this.chunks[i].length; }
+  return out;
+};
+
+/* ============================== minimal ZIP (store, no compression) ============================== */
+function buildZip(entries){
+  // entries: [{name: string, data: Uint8Array}]
+  var w = new ByteWriter();
+  var central = [];
+  for (var i = 0; i < entries.length; i++){
+    var e = entries[i];
+    var nameBytes = new TextEncoder().encode(e.name);
+    var crc = crc32(e.data);
+    var offset = w.length;
+
+    w.pushU32(0x04034b50);      // local file header signature
+    w.pushU16(20);              // version needed
+    w.pushU16(0);                // flags
+    w.pushU16(0);                // method: store
+    w.pushU16(0);                // mod time
+    w.pushU16(0x21);             // mod date (a valid-ish date, not important)
+    w.pushU32(crc);
+    w.pushU32(e.data.length);    // compressed size
+    w.pushU32(e.data.length);    // uncompressed size
+    w.pushU16(nameBytes.length);
+    w.pushU16(0);                // extra field length
+    w.pushBytes(nameBytes);
+    w.pushBytes(e.data);
+
+    central.push({ nameBytes: nameBytes, crc: crc, size: e.data.length, offset: offset });
+  }
+
+  var cdStart = w.length;
+  for (var j = 0; j < central.length; j++){
+    var c = central[j];
+    w.pushU32(0x02014b50);      // central directory header signature
+    w.pushU16(20);               // version made by
+    w.pushU16(20);               // version needed
+    w.pushU16(0);                // flags
+    w.pushU16(0);                // method
+    w.pushU16(0);                // mod time
+    w.pushU16(0x21);             // mod date
+    w.pushU32(c.crc);
+    w.pushU32(c.size);
+    w.pushU32(c.size);
+    w.pushU16(c.nameBytes.length);
+    w.pushU16(0);                // extra length
+    w.pushU16(0);                // comment length
+    w.pushU16(0);                // disk number start
+    w.pushU16(0);                // internal attrs
+    w.pushU32(0);                // external attrs
+    w.pushU32(c.offset);
+    w.pushBytes(c.nameBytes);
+  }
+  var cdSize = w.length - cdStart;
+
+  w.pushU32(0x06054b50);        // end of central directory signature
+  w.pushU16(0);                  // disk number
+  w.pushU16(0);                  // disk with cd
+  w.pushU16(central.length);     // entries this disk
+  w.pushU16(central.length);     // total entries
+  w.pushU32(cdSize);
+  w.pushU32(cdStart);
+  w.pushU16(0);                  // comment length
+
+  return w.toBytes();
+}
+
+/* ============================== DOCX ============================== */
+function escapeXml(s){
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildDocxBytes(text){
+  var lines = String(text).split('\n');
+  var paras = lines.map(function(line){
+    if (line.length === 0){ return '<w:p/>'; }
+    return '<w:p><w:r><w:t xml:space="preserve">' + escapeXml(line) + '</w:t></w:r></w:p>';
+  }).join('');
+
+  var documentXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+    '<w:body>' + paras +
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417"/></w:sectPr>' +
+    '</w:body></w:document>';
+
+  var contentTypesXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+    '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+    '</Types>';
+
+  var relsXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+    '</Relationships>';
+
+  var coreXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' +
+    'xmlns:dc="http://purl.org/dc/elements/1.1/">' +
+    '<dc:title>Document</dc:title>' +
+    '</cp:coreProperties>';
+
+  var enc = function(s){ return new TextEncoder().encode(s); };
+  return buildZip([
+    { name: '[Content_Types].xml', data: enc(contentTypesXml) },
+    { name: '_rels/.rels', data: enc(relsXml) },
+    { name: 'docProps/core.xml', data: enc(coreXml) },
+    { name: 'word/document.xml', data: enc(documentXml) }
+  ]);
+}
+
+/* ============================== PDF ============================== */
+// Helvetica AFM widths (1/1000 em), indexed by WinAnsi byte value.
+var PDF_WIDTHS = (function(){
+  var w = {};
+  var ascii = {
+    32:278,33:278,34:355,35:556,36:556,37:889,38:667,39:191,40:333,41:333,42:389,43:584,
+    44:278,45:333,46:278,47:278,48:556,49:556,50:556,51:556,52:556,53:556,54:556,55:556,
+    56:556,57:556,58:278,59:278,60:584,61:584,62:584,63:556,64:1015,65:667,66:667,67:722,
+    68:722,69:667,70:611,71:778,72:722,73:278,74:500,75:667,76:556,77:833,78:722,79:778,
+    80:667,81:778,82:722,83:667,84:611,85:722,86:667,87:944,88:667,89:667,90:611,91:278,
+    92:278,93:278,94:469,95:556,96:333,97:556,98:556,99:500,100:556,101:556,102:278,103:556,
+    104:556,105:222,106:222,107:500,108:222,109:833,110:556,111:556,112:556,113:556,114:333,
+    115:500,116:278,117:556,118:500,119:722,120:500,121:500,122:500,123:334,124:260,125:334,126:584
+  };
+  for (var k in ascii){ w[k] = ascii[k]; }
+  // French-relevant WinAnsi accented bytes, approximated from their base letter.
+  var accented = {
+    0xC0:667,0xC2:667,0xC7:722,0xC8:667,0xC9:667,0xCA:667,0xCB:667,0xCE:278,0xCF:278,
+    0xD4:778,0xD9:722,0xDB:722,0xDC:722,0x8C:1000,
+    0xE0:556,0xE2:556,0xE7:500,0xE8:556,0xE9:556,0xEA:556,0xEB:556,0xEE:222,0xEF:222,
+    0xF4:556,0xF9:556,0xFB:556,0xFC:556,0x9C:834,
+    0x91:222,0x92:222,0x93:333,0x94:333,0x96:556,0x97:1000,0x85:1000,0xAB:500,0xBB:500
+  };
+  for (var k2 in accented){ w[k2] = accented[k2]; }
+  return w;
+})();
+
+// Unicode code point -> WinAnsi (CP1252) byte. Falls back to '?' (63) if unmappable.
+var WINANSI_SPECIAL = {
+  0x20AC:0x80, 0x2018:0x91, 0x2019:0x92, 0x201C:0x93, 0x201D:0x94,
+  0x2013:0x96, 0x2014:0x97, 0x2026:0x85, 0x0152:0x8C, 0x0153:0x9C,
+  0x0160:0x8A, 0x0161:0x9A, 0x0178:0x9F, 0x017D:0x8E, 0x017E:0x9E
+};
+function codePointToWinAnsi(cp){
+  if (cp < 128) return cp;
+  if (WINANSI_SPECIAL[cp] !== undefined) return WINANSI_SPECIAL[cp];
+  if (cp >= 0xA0 && cp <= 0xFF) return cp;
+  return 63; // '?'
+}
+function stringToWinAnsiBytes(str){
+  var out = [];
+  for (var i = 0; i < str.length; i++){ out.push(codePointToWinAnsi(str.charCodeAt(i))); }
+  return out; // array of byte values 0-255
+}
+function widthOfByte(b){ return PDF_WIDTHS[b] !== undefined ? PDF_WIDTHS[b] : 556; }
+function bytesWidthPts(byteArr, fontSize){
+  var w = 0;
+  for (var i = 0; i < byteArr.length; i++){ w += widthOfByte(byteArr[i]); }
+  return w * fontSize / 1000;
+}
+function escapePdfBytes(byteArr){
+  // returns a new byte array with (, ), \\ escaped for a PDF literal string
+  var out = [];
+  for (var i = 0; i < byteArr.length; i++){
+    var b = byteArr[i];
+    if (b === 0x28 || b === 0x29 || b === 0x5C){ out.push(0x5C); }
+    out.push(b);
+  }
+  return out;
+}
+function bytesToLatin1String(byteArr){
+  var s = '';
+  for (var i = 0; i < byteArr.length; i++){ s += String.fromCharCode(byteArr[i]); }
+  return s;
+}
+
+function wrapParagraph(line, fontSize, maxWidthPts){
+  var words = line.split(' ');
+  var lines = [];
+  var current = [];
+  for (var i = 0; i < words.length; i++){
+    var wordBytes = stringToWinAnsiBytes(words[i]);
+    var candidate = current.length ? current.concat([32], wordBytes) : wordBytes;
+    if (bytesWidthPts(candidate, fontSize) <= maxWidthPts || current.length === 0){
+      current = candidate;
+    } else {
+      lines.push(current);
+      current = wordBytes;
+      // hard-break a single word wider than the page
+      while (bytesWidthPts(current, fontSize) > maxWidthPts && current.length > 1){
+        var cut = current.length - 1;
+        while (cut > 1 && bytesWidthPts(current.slice(0, cut), fontSize) > maxWidthPts){ cut--; }
+        lines.push(current.slice(0, cut));
+        current = current.slice(cut);
+      }
+    }
+  }
+  lines.push(current);
+  return lines; // array of byte arrays
+}
+
+function buildPdfBytes(text, opts){
+  opts = opts || {};
+  var pageW = 595, pageH = 842;          // A4
+  var marginX = 56, marginY = 56;
+  var fontSize = opts.fontSize || 11;
+  var leading = opts.leading || 15;
+  var maxWidth = pageW - 2 * marginX;
+
+  var hardLines = String(text).split('\n');
+  var allLines = [];
+  hardLines.forEach(function(hl){
+    if (hl.length === 0){ allLines.push([]); return; }
+    var wrapped = wrapParagraph(hl, fontSize, maxWidth * 0.97); // small safety margin
+    wrapped.forEach(function(w){ allLines.push(w); });
+  });
+
+  var linesPerPage = Math.max(1, Math.floor((pageH - 2 * marginY) / leading));
+  var pages = [];
+  for (var i = 0; i < allLines.length; i += linesPerPage){ pages.push(allLines.slice(i, i + linesPerPage)); }
+  if (pages.length === 0) pages.push([]);
+
+  // ---- build PDF objects as binary strings (1 char = 1 byte) ----
+  var objects = []; // index 0 unused; objects[n] = string content for object n
+  var NUM_PAGES = pages.length;
+  var catalogNum = 1, pagesNum = 2, fontNum = 3;
+  var firstContentNum = 4;                 // content streams: 4 .. 4+N-1
+  var firstPageNum = 4 + NUM_PAGES;        // page objs: firstPageNum .. +N-1
+  var totalObjects = firstPageNum + NUM_PAGES - 1; // highest object number actually used
+
+  objects[catalogNum] = '<< /Type /Catalog /Pages ' + pagesNum + ' 0 R >>';
+
+  var kids = [];
+  for (var p = 0; p < NUM_PAGES; p++){ kids.push((firstPageNum + p) + ' 0 R'); }
+  objects[pagesNum] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + NUM_PAGES + ' >>';
+
+  objects[fontNum] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+
+  var topY = pageH - marginY - fontSize;
+  for (var pi = 0; pi < NUM_PAGES; pi++){
+    var pageLines = pages[pi];
+    var content = 'BT\n/F1 ' + fontSize + ' Tf\n1 0 0 1 ' + marginX + ' ' + topY + ' Tm\n';
+    for (var li = 0; li < pageLines.length; li++){
+      if (li > 0) content += '0 -' + leading + ' Td\n';
+      var escaped = escapePdfBytes(pageLines[li]);
+      content += '(' + bytesToLatin1String(escaped) + ') Tj\n';
+    }
+    content += 'ET';
+    var contentObjNum = firstContentNum + pi;
+    objects[contentObjNum] = '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream';
+
+    var pageObjNum = firstPageNum + pi;
+    objects[pageObjNum] = '<< /Type /Page /Parent ' + pagesNum + ' 0 R /MediaBox [0 0 ' + pageW + ' ' + pageH + '] ' +
+      '/Resources << /Font << /F1 ' + fontNum + ' 0 R >> >> /Contents ' + contentObjNum + ' 0 R >>';
+  }
+
+  // ---- serialize with xref ----
+  var out = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';
+  var offsets = [0]; // offsets[n] = byte offset of object n
+  for (var n = 1; n <= totalObjects; n++){
+    offsets[n] = out.length;
+    out += n + ' 0 obj\n' + objects[n] + '\nendobj\n';
+  }
+  var xrefStart = out.length;
+  out += 'xref\n0 ' + (totalObjects + 1) + '\n';
+  out += '0000000000 65535 f\r\n';
+  for (var n2 = 1; n2 <= totalObjects; n2++){
+    var off = String(offsets[n2]);
+    while (off.length < 10) off = '0' + off;
+    out += off + ' 00000 n\r\n';
+  }
+  out += 'trailer\n<< /Size ' + (totalObjects + 1) + ' /Root ' + catalogNum + ' 0 R >>\n';
+  out += 'startxref\n' + xrefStart + '\n%%EOF';
+
+  // out is a binary string (1 char = 1 byte, since all bytes are <256 by construction)
+  var bytes = new Uint8Array(out.length);
+  for (var i2 = 0; i2 < out.length; i2++){ bytes[i2] = out.charCodeAt(i2) & 0xFF; }
+  return bytes;
+}
+
+/* ============================== plain text ============================== */
+function buildTxtBytes(text){
+  return new TextEncoder().encode(String(text));
+}
+
+if (typeof module !== 'undefined' && module.exports){
+  module.exports = { buildDocxBytes: buildDocxBytes, buildPdfBytes: buildPdfBytes, buildTxtBytes: buildTxtBytes, crc32: crc32, buildZip: buildZip };
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- helpers ----------
+  function todayISO(){
+    var d = new Date();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear()+'-'+m+'-'+day;
+  }
+  function fmtDate(iso){
+    if(!iso) return '';
+    var parts = iso.split('-');
+    if(parts.length !== 3) return iso;
+    var d = new Date(iso + 'T00:00:00');
+    if(isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+  }
+  document.getElementById('date').value = todayISO();
+
+  function pick(arr, i){ return arr[((i % arr.length) + arr.length) % arr.length]; }
+  function fill(str, apprenant){ return str.split('{A}').join(apprenant); }
+  function capFirst(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function endPunct(s){ return /[.!?:]$/.test(s) ? s : (s + '.'); }
+
+  // Splits free text into discrete items: primarily one per line, and any
+  // line containing ";" is split further. Never rewrites content.
+  function splitItems(raw){
+    if(!raw) return [];
+    var items = [];
+    String(raw).split(/\n+/).forEach(function(line){
+      line.split(';').forEach(function(part){
+        var t = part.trim();
+        if(t) items.push(t);
+      });
+    });
+    return items;
+  }
+  function formatList(raw){
+    var items = splitItems(raw);
+    if(!items.length) return '';
+    return items.map(function(it){ return '- ' + endPunct(capFirst(it)); }).join('\n');
+  }
+
+  // ---------- bilan phrase bank (independent of the free-text sections) ----------
+  var BILAN = {
+    tresPositif: [
+      '{A} s\'intègre très bien dans l\'entreprise et progresse de façon remarquable sur cette période en entreprise.',
+      'La visite confirme une intégration excellente : {A} est pleinement à l\'aise dans ses missions.'
+    ],
+    positif: [
+      '{A} s\'intègre bien dans l\'entreprise et progresse normalement sur cette période en entreprise.',
+      'La visite se déroule dans de bonnes conditions : {A} prend ses marques et progresse.'
+    ],
+    satisfaisant: [
+      '{A} s\'intègre globalement bien, avec quelques points de vigilance à surveiller.',
+      'La visite montre une intégration satisfaisante, mais certains points restent à consolider.'
+    ],
+    difficulte: [
+      '{A} rencontre des difficultés notables sur cette période en entreprise qui nécessitent une action rapide.',
+      'La visite révèle des difficultés qui doivent être corrigées sans attendre.'
+    ]
+  };
+
+  var state = { variant: 0 };
+
+  // ---------- collect + generate ----------
+  function collect(){
+    return {
+      date: document.getElementById('date').value,
+      apprenant: document.getElementById('apprenant').value.trim(),
+      classe: document.getElementById('classe').value.trim(),
+      entreprise: document.getElementById('entreprise').value.trim(),
+      tuteur: document.getElementById('tuteur').value.trim(),
+      presents: document.getElementById('presents').value.trim(),
+      missions: document.getElementById('missions').value.trim(),
+      bilan: document.querySelector('input[name="bilan"]:checked').value,
+      positifs: document.getElementById('positifs').value.trim(),
+      vigilance: document.getElementById('vigilance').value.trim(),
+      actions: document.getElementById('actions').value.trim(),
+      prochaineVisite: document.getElementById('prochaineVisite').value,
+      remarque: document.getElementById('remarque').value.trim()
+    };
+  }
+
+  function assemble(){
+    var f = collect();
+    if(!f.date || !f.apprenant || !f.classe || !f.entreprise || !f.missions){
+      alert('Merci de renseigner au moins la date, l\'apprenant, la formation, l\'entreprise et les missions observées.');
+      return null;
+    }
+    var lines = [];
+    lines.push('Compte-rendu de visite en entreprise — ' + fmtDate(f.date));
+    lines.push('');
+    lines.push('Apprenant : ' + f.apprenant);
+    lines.push('Formation : ' + f.classe);
+    lines.push('Entreprise : ' + f.entreprise);
+    if(f.tuteur){ lines.push('Maître d\'apprentissage / tuteur : ' + f.tuteur); }
+    if(f.presents){ lines.push('Présents : ' + f.presents); }
+    lines.push('');
+    lines.push(fill(pick(BILAN[f.bilan], state.variant), f.apprenant));
+    lines.push('');
+    lines.push('Missions observées / activités actuelles :');
+    lines.push(formatList(f.missions));
+    if(f.positifs){
+      lines.push('');
+      lines.push('Points positifs :');
+      lines.push(formatList(f.positifs));
+    }
+    if(f.vigilance){
+      lines.push('');
+      lines.push('Points de vigilance :');
+      lines.push(formatList(f.vigilance));
+    }
+    if(f.actions){
+      lines.push('');
+      lines.push('Actions à mener :');
+      lines.push(formatList(f.actions));
+    }
+    if(f.prochaineVisite){
+      lines.push('');
+      lines.push('Prochaine visite prévue : ' + fmtDate(f.prochaineVisite));
+    }
+    if(f.remarque){
+      lines.push('');
+      lines.push(f.remarque);
+    }
+    return lines.join('\n');
+  }
+
+  function scrollToOutput(){
+    var panel = document.getElementById('outputPanel');
+    if(!panel) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    panel.classList.remove('just-generated');
+    void panel.offsetWidth; // force reflow so the flash can restart on consecutive clicks
+    panel.classList.add('just-generated');
+    setTimeout(function(){ panel.classList.remove('just-generated'); }, 1500);
+  }
+
+  function resetOutput(){
+    document.getElementById('emptyState').style.display = '';
+    document.getElementById('reportOut').style.display = 'none';
+    document.getElementById('outActions').style.display = 'none';
+    document.getElementById('exportRow').style.display = 'none';
+    setExportMsg('');
+  }
+
+  function showReport(){
+    var text = assemble();
+    if(text === null) return;
+    document.getElementById('emptyState').style.display = 'none';
+    var out = document.getElementById('reportOut');
+    out.style.display = '';
+    out.value = text;
+    document.getElementById('outActions').style.display = '';
+    document.getElementById('exportRow').style.display = '';
+    setExportMsg('');
+    scrollToOutput();
+  }
+
+  document.getElementById('genBtn').addEventListener('click', function(){
+    state.variant = 0;
+    showReport();
+  });
+  document.getElementById('variantBtn').addEventListener('click', function(){
+    state.variant += 1;
+    showReport();
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var out = document.getElementById('reportOut');
+    var msg = document.getElementById('copiedMsg');
+    function flash(){ msg.classList.add('show'); setTimeout(function(){ msg.classList.remove('show'); }, 1600); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(out.value).then(flash).catch(function(){
+        out.focus(); out.select(); flash();
+      });
+    } else {
+      out.focus(); out.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      flash();
+    }
+  });
+
+  // ---------- export (PDF / Word / Texte) ----------
+  function slug(s){
+    var v = String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    v = v.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+    return v || 'document';
+  }
+  function exportFilenameBase(){
+    var f = collect();
+    var parts = ['visite-entreprise', slug(f.apprenant), f.date].filter(function(p){ return p && p !== 'document'; });
+    return parts.length ? parts.join('-') : 'compte-rendu-visite-entreprise';
+  }
+  function setExportMsg(text, kind){
+    var el = document.getElementById('exportMsg');
+    el.textContent = text || '';
+    el.className = 'export-msg' + (kind ? ' ' + kind : '');
+  }
+  // Running inside a published Claude Artifact iframe? window.claude is present there
+  // (whether or not any capability was granted) and absent on a plain static host
+  // (GitHub Pages, Netlify, a file opened directly, etc.).
+  function inClaudeArtifact(){
+    return typeof window.claude !== 'undefined' && window.claude && typeof window.claude.use === 'function';
+  }
+  var _downloadsPromise = null;
+  function ensureDownloads(){
+    if(!_downloadsPromise){
+      _downloadsPromise = inClaudeArtifact()
+        ? window.claude.use('downloads').catch(function(){ return null; })
+        : Promise.resolve(null);
+    }
+    return _downloadsPromise;
+  }
+  function nativeDownload(filename, bytes){
+    var blob = new Blob([bytes]);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+  function doExport(kind){
+    var out = document.getElementById('reportOut');
+    var text = out.value;
+    if(!text){ return; }
+    var filename = exportFilenameBase() + '.' + kind;
+    var bytes;
+    if(kind === 'txt'){ bytes = buildTxtBytes(text); }
+    else if(kind === 'pdf'){ bytes = buildPdfBytes(text); }
+    else if(kind === 'docx'){ bytes = buildDocxBytes(text); }
+    else { return; }
+
+    // Outside the Claude Artifact sandbox (e.g. hosted on your own site) a plain
+    // browser download always works — no capability needed, no confirmation prompt.
+    if(!inClaudeArtifact()){
+      try{
+        nativeDownload(filename, bytes);
+        setExportMsg('Fichier téléchargé ✓', 'ok');
+      }catch(e){
+        setExportMsg('Échec du téléchargement — réessayez, ou utilisez Copier le texte.', 'err');
+      }
+      return;
+    }
+
+    setExportMsg('Préparation du fichier…');
+    ensureDownloads().then(function(downloads){
+      if(!downloads){
+        setExportMsg('Export indisponible dans cette vue (page partagée publiquement) — utilisez « Copier le texte ».', 'err');
+        return;
+      }
+      return downloads.save({ filename: filename, data: bytes }).then(function(){
+        setExportMsg('Fichier enregistré ✓', 'ok');
+      });
+    }).catch(function(err){
+      var code = err && err.code;
+      if(code === 'declined'){ setExportMsg(''); }
+      else if(code === 'extension_not_enabled'){ setExportMsg('Export .' + kind + ' non disponible ici — essayez Texte (.txt).', 'err'); }
+      else if(code === 'rate_limited'){ setExportMsg('Un export est déjà en cours — patientez puis réessayez.', 'err'); }
+      else { setExportMsg('Échec de l\'export — réessayez, ou utilisez Copier le texte.', 'err'); }
+    });
+  }
+  document.getElementById('exportTxtBtn').addEventListener('click', function(){ doExport('txt'); });
+  document.getElementById('exportPdfBtn').addEventListener('click', function(){ doExport('pdf'); });
+  document.getElementById('exportDocxBtn').addEventListener('click', function(){ doExport('docx'); });
+
+  resetOutput();
+})();
+</script>
+</body>
+</html>
