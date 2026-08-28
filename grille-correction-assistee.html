@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grille de correction assistée</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#f1f0e9;
+    --surface:#fbfaf5;
+    --surface-2:#ffffff;
+    --ink:#22231f;
+    --ink-soft:#63645a;
+    --line:#d8d6c9;
+    --accent:#3e5c76;
+    --accent-soft:#e2e8ed;
+    --accent-ink:#ffffff;
+    --ok:#4b8763;
+    --ok-soft:#e2ede6;
+    --warn:#b98a2e;
+    --warn-soft:#f2e7d3;
+    --err:#b4573e;
+    --shadow: 0 1px 2px rgba(34,35,31,0.06), 0 6px 16px rgba(34,35,31,0.05);
+    --focus: 0 0 0 3px rgba(62,92,118,0.28);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1c1e1b;
+      --surface:#242621;
+      --surface-2:#2b2d27;
+      --ink:#ebe9df;
+      --ink-soft:#a6a79b;
+      --line:#3a3c36;
+      --accent:#93b3ca;
+      --accent-soft:#2a3540;
+      --accent-ink:#12181c;
+      --ok:#79b891;
+      --ok-soft:#25352a;
+      --warn:#dcae57;
+      --warn-soft:#3a2f1c;
+      --err:#dd8468;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.3);
+      --focus: 0 0 0 3px rgba(147,179,202,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1c1e1b;
+    --surface:#242621;
+    --surface-2:#2b2d27;
+    --ink:#ebe9df;
+    --ink-soft:#a6a79b;
+    --line:#3a3c36;
+    --accent:#93b3ca;
+    --accent-soft:#2a3540;
+    --accent-ink:#12181c;
+    --ok:#79b891;
+    --ok-soft:#25352a;
+    --warn:#dcae57;
+    --warn-soft:#3a2f1c;
+    --err:#dd8468;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.3);
+    --focus: 0 0 0 3px rgba(147,179,202,0.35);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  .topbar{ border-bottom:1px solid var(--line); padding:16px 24px; }
+  .topbar-inner{
+    max-width:1080px; margin:0 auto;
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  .brand{ font-family:'Newsreader', Georgia, serif; font-style:italic; font-weight:600; font-size:1.2rem; }
+  .brand-sub{ font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--ink-soft); letter-spacing:0.04em; }
+
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:0.88rem;
+    color:var(--accent); text-decoration:none;
+    background:var(--accent-soft); border:1px solid var(--accent);
+    padding:7px 16px; border-radius:999px;
+    margin-bottom:12px;
+    transition: background .15s ease, color .15s ease;
+  }
+  .back-link:hover{ background:var(--accent); color:var(--accent-ink); }
+  .back-link:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+  main{ max-width:1080px; margin:0 auto; padding:28px 24px 70px; }
+
+  .layout{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
+  @media (max-width:860px){ .layout{ grid-template-columns:1fr; } }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .panel-head{
+    padding:14px 18px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .panel-head h2{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--ink-soft); margin:0; font-weight:600;
+  }
+  .panel-body{ padding:18px; }
+  .panel-body.tight{ padding:8px 18px 18px; }
+
+  label{ display:block; font-size:0.76rem; color:var(--ink-soft); margin-bottom:5px; }
+  .req{ color:var(--accent); }
+  .field{ margin-bottom:14px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:520px){ .field-row{ grid-template-columns:1fr; } }
+
+  fieldset{ border:none; padding:0; margin:0 0 18px; }
+  fieldset legend{
+    font-family:'IBM Plex Mono', monospace; font-size:0.7rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--accent); padding:0 0 8px; width:100%;
+    border-bottom:1px solid var(--line); margin-bottom:12px;
+  }
+
+  input[type="text"], input[type="number"], select, textarea{
+    width:100%; font-family:'IBM Plex Sans', sans-serif; font-size:0.92rem; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:7px; padding:9px 10px;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); box-shadow:var(--focus); }
+  textarea{ resize:vertical; font-family:inherit; line-height:1.5; }
+
+  .hint{ font-size:0.76rem; color:var(--ink-soft); margin:8px 0 0; line-height:1.4; }
+  .chip-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ position:relative; }
+  .chip input{ position:absolute; opacity:0; }
+  .chip span{
+    display:inline-block; font-size:0.82rem; border:1px solid var(--line); background:var(--surface-2);
+    color:var(--ink-soft); padding:8px 13px; border-radius:8px; cursor:pointer; line-height:1.3;
+  }
+  .chip input:checked + span{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .chip input:focus-visible + span{ box-shadow:var(--focus); }
+
+  .btn{
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:0.88rem;
+    border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink);
+    padding:11px 18px; border-radius:8px; cursor:pointer; width:100%;
+  }
+  .btn:hover{ filter:brightness(1.06); }
+  .btn:focus-visible{ outline:none; box-shadow:var(--focus); }
+  .btn-ghost{ background:transparent; color:var(--accent); width:auto; padding:8px 12px; font-size:0.8rem; }
+  .btn-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+
+  @keyframes panelFlash{
+    0%{ outline-color: transparent; }
+    20%{ outline-color: var(--accent); }
+    100%{ outline-color: transparent; }
+  }
+  .panel.just-generated{
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+    animation: panelFlash 1.4s ease-out;
+  }
+  .output-empty{
+    color:var(--ink-soft); font-size:0.88rem; padding:30px 6px; text-align:center;
+    border:1px dashed var(--line); border-radius:8px;
+  }
+  #letterOut{ width:100%; min-height:220px; white-space:pre-wrap; }
+
+  .meta-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-top:8px; font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--ink-soft);
+  }
+  .meta-row .count.warn{ color:var(--warn); }
+  .copied-msg{ color:var(--ok); opacity:0; transition:opacity .2s ease; }
+  .copied-msg.show{ opacity:1; }
+
+  .export-row{
+    margin-top:6px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .export-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.66rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:8px;
+  }
+  .export-msg{
+    font-size:0.78rem;
+    margin-top:8px;
+    min-height:1.1em;
+  }
+  .export-msg.ok{ color:var(--ok); }
+  .export-msg.err{ color:var(--err); }
+
+  /* ---------- rubric criteria ---------- */
+  #liveScore{
+    font-family:'IBM Plex Mono', monospace; font-size:0.82rem; font-weight:600;
+    color:var(--accent); background:var(--accent-soft); border-radius:8px;
+    padding:10px 12px; margin:2px 0 16px;
+  }
+  .crit-row{
+    border:1px solid var(--line); border-radius:9px; padding:11px 12px;
+    margin-bottom:10px; background:var(--surface-2);
+  }
+  .crit-row-top{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .crit-label{ flex:1; min-width:0; }
+  .crit-row-bottom{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; flex-wrap:wrap; }
+  .crit-points-wrap{ display:flex; align-items:center; gap:5px; flex-shrink:0; }
+  input.crit-points{ width:62px; text-align:right; }
+  .crit-points-suffix{ font-size:0.76rem; color:var(--ink-soft); white-space:nowrap; }
+  .crit-remove{
+    background:transparent; border:1px solid var(--line); color:var(--ink-soft);
+    border-radius:6px; width:30px; height:30px; cursor:pointer; flex-shrink:0;
+    font-size:0.85rem; line-height:1;
+  }
+  .crit-remove:hover{ border-color:var(--err); color:var(--err); }
+  .crit-levels{ gap:6px; }
+  .crit-levels .chip span{ padding:6px 10px; font-size:0.78rem; }
+
+  footer{ max-width:1080px; margin:0 auto; padding:10px 24px 60px; font-size:0.76rem; color:var(--ink-soft); }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <a class="back-link" href="index.html">← Boîte à outils</a>
+      <div class="brand">Grille de correction assistée</div>
+    </div>
+    <div class="brand-sub">Rien n'est envoyé nulle part — tout reste dans cette page.</div>
+  </div>
+</div>
+
+<main>
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-head"><h2>1 — Noter la copie</h2></div>
+      <div class="panel-body">
+        <form id="fieldForm">
+          <div class="field-row">
+            <div class="field"><label for="apprenant">Prénom apprenant <span class="req">*</span></label><input type="text" id="apprenant" placeholder="Léa"></div>
+            <div class="field"><label for="matiere">Matière (facultatif)</label><input type="text" id="matiere" placeholder="ex. français"></div>
+          </div>
+          <div class="field">
+            <label for="exercice">Intitulé de l'exercice / de la copie (facultatif)</label>
+            <input type="text" id="exercice" placeholder="ex. dissertation — séquence 3">
+          </div>
+
+          <fieldset>
+            <legend>Grille de critères</legend>
+            <div id="liveScore">Note actuelle : 0 / 0</div>
+            <div id="criteriaList"></div>
+            <button type="button" class="btn btn-ghost" id="addCritBtn">+ Ajouter un critère</button>
+            <p class="hint">Les 5 critères par défaut totalisent 20 points, mais tout est modifiable : renommez, changez les points, ajoutez ou supprimez des critères selon l'exercice noté. Chaque niveau (À consolider / Fragile / Satisfaisant / Maîtrisé) est converti en points selon un barème indicatif — 20&nbsp;% / 50&nbsp;% / 75&nbsp;% / 100&nbsp;% du maximum du critère — à ajuster librement avant de reporter la note.</p>
+          </fieldset>
+
+          <div class="field">
+            <label for="detail">Détail propre à cette copie (facultatif)</label>
+            <textarea id="detail" rows="2" placeholder="ex. bonne progression depuis le dernier devoir"></textarea>
+          </div>
+
+          <fieldset id="closingFieldset">
+            <legend>Formule finale</legend>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="registre" value="encourageant" checked><span>Encourageante</span></label>
+              <label class="chip"><input type="radio" name="registre" value="neutre"><span>Neutre</span></label>
+              <label class="chip"><input type="radio" name="registre" value="vigilant"><span>Vigilance</span></label>
+              <label class="chip"><input type="radio" name="registre" value="aucune"><span>Aucune</span></label>
+            </div>
+          </fieldset>
+
+          <button type="button" class="btn" id="genBtn">Générer le commentaire de correction</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel" id="outputPanel">
+      <div class="panel-head">
+        <h2>2 — Relire &amp; copier</h2>
+        <span class="copied-msg" id="copiedMsg">Copié ✓</span>
+      </div>
+      <div class="panel-body">
+        <div class="output-empty" id="emptyState">Renseignez le prénom de l'apprenant, notez chaque critère de la grille, puis cliquez sur « Générer le commentaire de correction ». Le texte s'affiche ici, modifiable avant de le coller dans Yparéo.</div>
+        <textarea id="letterOut" style="display:none"></textarea>
+        <div class="meta-row" id="metaRow" style="display:none">
+          <span id="charCount">0 caractères</span>
+        </div>
+        <div class="btn-row" id="outActions" style="display:none">
+          <button type="button" class="btn btn-ghost" id="copyBtn">Copier le texte</button>
+          <button type="button" class="btn btn-ghost" id="variantBtn">Autre formulation</button>
+        </div>
+        <div class="export-row" id="exportRow" style="display:none">
+          <span class="export-label">Exporter le fichier</span>
+          <div class="btn-row">
+            <button type="button" class="btn btn-ghost" id="exportTxtBtn">Texte (.txt)</button>
+            <button type="button" class="btn btn-ghost" id="exportPdfBtn">PDF</button>
+            <button type="button" class="btn btn-ghost" id="exportDocxBtn">Word (.docx)</button>
+          </div>
+          <div class="export-msg" id="exportMsg"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Base de correction, pas une note définitive — relisez toujours avant de la reporter dans Yparéo. Aucun contenu n'est jugé automatiquement : c'est vous qui choisissez le niveau de chaque critère, l'outil se contente de calculer la note et de rédiger un commentaire à partir de ces choix.<br>
+  Les niveaux sont convertis en points selon un barème indicatif (20&nbsp;% / 50&nbsp;% / 75&nbsp;% / 100&nbsp;% du maximum du critère) que vous pouvez ajuster librement avant de reporter la note.
+</footer>
+
+<script>
+/* export-utils.js — pure client-side TXT / DOCX / PDF generation, no dependencies.
+   Works unmodified in a browser <script> tag and in Node (for testing) via the
+   guarded module.exports at the bottom. */
+
+/* ============================== CRC32 (for zip/docx) ============================== */
+var CRC_TABLE = (function(){
+  var table = new Uint32Array(256);
+  for (var n = 0; n < 256; n++){
+    var c = n;
+    for (var k = 0; k < 8; k++){ c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+function crc32(bytes){
+  var crc = 0xFFFFFFFF;
+  for (var i = 0; i < bytes.length; i++){
+    crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+/* ============================== little-endian byte writer ============================== */
+function ByteWriter(){
+  this.chunks = [];
+  this.length = 0;
+}
+ByteWriter.prototype.pushBytes = function(u8){ this.chunks.push(u8); this.length += u8.length; };
+ByteWriter.prototype.pushU16 = function(v){ this.pushBytes(new Uint8Array([v & 0xFF, (v >>> 8) & 0xFF])); };
+ByteWriter.prototype.pushU32 = function(v){ this.pushBytes(new Uint8Array([v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF])); };
+ByteWriter.prototype.pushStr = function(s){ this.pushBytes(new TextEncoder().encode(s)); };
+ByteWriter.prototype.toBytes = function(){
+  var out = new Uint8Array(this.length);
+  var off = 0;
+  for (var i = 0; i < this.chunks.length; i++){ out.set(this.chunks[i], off); off += this.chunks[i].length; }
+  return out;
+};
+
+/* ============================== minimal ZIP (store, no compression) ============================== */
+function buildZip(entries){
+  // entries: [{name: string, data: Uint8Array}]
+  var w = new ByteWriter();
+  var central = [];
+  for (var i = 0; i < entries.length; i++){
+    var e = entries[i];
+    var nameBytes = new TextEncoder().encode(e.name);
+    var crc = crc32(e.data);
+    var offset = w.length;
+
+    w.pushU32(0x04034b50);      // local file header signature
+    w.pushU16(20);              // version needed
+    w.pushU16(0);                // flags
+    w.pushU16(0);                // method: store
+    w.pushU16(0);                // mod time
+    w.pushU16(0x21);             // mod date (a valid-ish date, not important)
+    w.pushU32(crc);
+    w.pushU32(e.data.length);    // compressed size
+    w.pushU32(e.data.length);    // uncompressed size
+    w.pushU16(nameBytes.length);
+    w.pushU16(0);                // extra field length
+    w.pushBytes(nameBytes);
+    w.pushBytes(e.data);
+
+    central.push({ nameBytes: nameBytes, crc: crc, size: e.data.length, offset: offset });
+  }
+
+  var cdStart = w.length;
+  for (var j = 0; j < central.length; j++){
+    var c = central[j];
+    w.pushU32(0x02014b50);      // central directory header signature
+    w.pushU16(20);               // version made by
+    w.pushU16(20);               // version needed
+    w.pushU16(0);                // flags
+    w.pushU16(0);                // method
+    w.pushU16(0);                // mod time
+    w.pushU16(0x21);             // mod date
+    w.pushU32(c.crc);
+    w.pushU32(c.size);
+    w.pushU32(c.size);
+    w.pushU16(c.nameBytes.length);
+    w.pushU16(0);                // extra length
+    w.pushU16(0);                // comment length
+    w.pushU16(0);                // disk number start
+    w.pushU16(0);                // internal attrs
+    w.pushU32(0);                // external attrs
+    w.pushU32(c.offset);
+    w.pushBytes(c.nameBytes);
+  }
+  var cdSize = w.length - cdStart;
+
+  w.pushU32(0x06054b50);        // end of central directory signature
+  w.pushU16(0);                  // disk number
+  w.pushU16(0);                  // disk with cd
+  w.pushU16(central.length);     // entries this disk
+  w.pushU16(central.length);     // total entries
+  w.pushU32(cdSize);
+  w.pushU32(cdStart);
+  w.pushU16(0);                  // comment length
+
+  return w.toBytes();
+}
+
+/* ============================== DOCX ============================== */
+function escapeXml(s){
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildDocxBytes(text){
+  var lines = String(text).split('\n');
+  var paras = lines.map(function(line){
+    if (line.length === 0){ return '<w:p/>'; }
+    return '<w:p><w:r><w:t xml:space="preserve">' + escapeXml(line) + '</w:t></w:r></w:p>';
+  }).join('');
+
+  var documentXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+    '<w:body>' + paras +
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417"/></w:sectPr>' +
+    '</w:body></w:document>';
+
+  var contentTypesXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+    '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+    '</Types>';
+
+  var relsXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+    '</Relationships>';
+
+  var coreXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+    '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' +
+    'xmlns:dc="http://purl.org/dc/elements/1.1/">' +
+    '<dc:title>Document</dc:title>' +
+    '</cp:coreProperties>';
+
+  var enc = function(s){ return new TextEncoder().encode(s); };
+  return buildZip([
+    { name: '[Content_Types].xml', data: enc(contentTypesXml) },
+    { name: '_rels/.rels', data: enc(relsXml) },
+    { name: 'docProps/core.xml', data: enc(coreXml) },
+    { name: 'word/document.xml', data: enc(documentXml) }
+  ]);
+}
+
+/* ============================== PDF ============================== */
+// Helvetica AFM widths (1/1000 em), indexed by WinAnsi byte value.
+var PDF_WIDTHS = (function(){
+  var w = {};
+  var ascii = {
+    32:278,33:278,34:355,35:556,36:556,37:889,38:667,39:191,40:333,41:333,42:389,43:584,
+    44:278,45:333,46:278,47:278,48:556,49:556,50:556,51:556,52:556,53:556,54:556,55:556,
+    56:556,57:556,58:278,59:278,60:584,61:584,62:584,63:556,64:1015,65:667,66:667,67:722,
+    68:722,69:667,70:611,71:778,72:722,73:278,74:500,75:667,76:556,77:833,78:722,79:778,
+    80:667,81:778,82:722,83:667,84:611,85:722,86:667,87:944,88:667,89:667,90:611,91:278,
+    92:278,93:278,94:469,95:556,96:333,97:556,98:556,99:500,100:556,101:556,102:278,103:556,
+    104:556,105:222,106:222,107:500,108:222,109:833,110:556,111:556,112:556,113:556,114:333,
+    115:500,116:278,117:556,118:500,119:722,120:500,121:500,122:500,123:334,124:260,125:334,126:584
+  };
+  for (var k in ascii){ w[k] = ascii[k]; }
+  // French-relevant WinAnsi accented bytes, approximated from their base letter.
+  var accented = {
+    0xC0:667,0xC2:667,0xC7:722,0xC8:667,0xC9:667,0xCA:667,0xCB:667,0xCE:278,0xCF:278,
+    0xD4:778,0xD9:722,0xDB:722,0xDC:722,0x8C:1000,
+    0xE0:556,0xE2:556,0xE7:500,0xE8:556,0xE9:556,0xEA:556,0xEB:556,0xEE:222,0xEF:222,
+    0xF4:556,0xF9:556,0xFB:556,0xFC:556,0x9C:834,
+    0x91:222,0x92:222,0x93:333,0x94:333,0x96:556,0x97:1000,0x85:1000,0xAB:500,0xBB:500
+  };
+  for (var k2 in accented){ w[k2] = accented[k2]; }
+  return w;
+})();
+
+// Unicode code point -> WinAnsi (CP1252) byte. Falls back to '?' (63) if unmappable.
+var WINANSI_SPECIAL = {
+  0x20AC:0x80, 0x2018:0x91, 0x2019:0x92, 0x201C:0x93, 0x201D:0x94,
+  0x2013:0x96, 0x2014:0x97, 0x2026:0x85, 0x0152:0x8C, 0x0153:0x9C,
+  0x0160:0x8A, 0x0161:0x9A, 0x0178:0x9F, 0x017D:0x8E, 0x017E:0x9E
+};
+function codePointToWinAnsi(cp){
+  if (cp < 128) return cp;
+  if (WINANSI_SPECIAL[cp] !== undefined) return WINANSI_SPECIAL[cp];
+  if (cp >= 0xA0 && cp <= 0xFF) return cp;
+  return 63; // '?'
+}
+function stringToWinAnsiBytes(str){
+  var out = [];
+  for (var i = 0; i < str.length; i++){ out.push(codePointToWinAnsi(str.charCodeAt(i))); }
+  return out; // array of byte values 0-255
+}
+function widthOfByte(b){ return PDF_WIDTHS[b] !== undefined ? PDF_WIDTHS[b] : 556; }
+function bytesWidthPts(byteArr, fontSize){
+  var w = 0;
+  for (var i = 0; i < byteArr.length; i++){ w += widthOfByte(byteArr[i]); }
+  return w * fontSize / 1000;
+}
+function escapePdfBytes(byteArr){
+  // returns a new byte array with (, ), \\ escaped for a PDF literal string
+  var out = [];
+  for (var i = 0; i < byteArr.length; i++){
+    var b = byteArr[i];
+    if (b === 0x28 || b === 0x29 || b === 0x5C){ out.push(0x5C); }
+    out.push(b);
+  }
+  return out;
+}
+function bytesToLatin1String(byteArr){
+  var s = '';
+  for (var i = 0; i < byteArr.length; i++){ s += String.fromCharCode(byteArr[i]); }
+  return s;
+}
+
+function wrapParagraph(line, fontSize, maxWidthPts){
+  var words = line.split(' ');
+  var lines = [];
+  var current = [];
+  for (var i = 0; i < words.length; i++){
+    var wordBytes = stringToWinAnsiBytes(words[i]);
+    var candidate = current.length ? current.concat([32], wordBytes) : wordBytes;
+    if (bytesWidthPts(candidate, fontSize) <= maxWidthPts || current.length === 0){
+      current = candidate;
+    } else {
+      lines.push(current);
+      current = wordBytes;
+      // hard-break a single word wider than the page
+      while (bytesWidthPts(current, fontSize) > maxWidthPts && current.length > 1){
+        var cut = current.length - 1;
+        while (cut > 1 && bytesWidthPts(current.slice(0, cut), fontSize) > maxWidthPts){ cut--; }
+        lines.push(current.slice(0, cut));
+        current = current.slice(cut);
+      }
+    }
+  }
+  lines.push(current);
+  return lines; // array of byte arrays
+}
+
+function buildPdfBytes(text, opts){
+  opts = opts || {};
+  var pageW = 595, pageH = 842;          // A4
+  var marginX = 56, marginY = 56;
+  var fontSize = opts.fontSize || 11;
+  var leading = opts.leading || 15;
+  var maxWidth = pageW - 2 * marginX;
+
+  var hardLines = String(text).split('\n');
+  var allLines = [];
+  hardLines.forEach(function(hl){
+    if (hl.length === 0){ allLines.push([]); return; }
+    var wrapped = wrapParagraph(hl, fontSize, maxWidth * 0.97); // small safety margin
+    wrapped.forEach(function(w){ allLines.push(w); });
+  });
+
+  var linesPerPage = Math.max(1, Math.floor((pageH - 2 * marginY) / leading));
+  var pages = [];
+  for (var i = 0; i < allLines.length; i += linesPerPage){ pages.push(allLines.slice(i, i + linesPerPage)); }
+  if (pages.length === 0) pages.push([]);
+
+  // ---- build PDF objects as binary strings (1 char = 1 byte) ----
+  var objects = []; // index 0 unused; objects[n] = string content for object n
+  var NUM_PAGES = pages.length;
+  var catalogNum = 1, pagesNum = 2, fontNum = 3;
+  var firstContentNum = 4;                 // content streams: 4 .. 4+N-1
+  var firstPageNum = 4 + NUM_PAGES;        // page objs: firstPageNum .. +N-1
+  var totalObjects = firstPageNum + NUM_PAGES - 1; // highest object number actually used
+
+  objects[catalogNum] = '<< /Type /Catalog /Pages ' + pagesNum + ' 0 R >>';
+
+  var kids = [];
+  for (var p = 0; p < NUM_PAGES; p++){ kids.push((firstPageNum + p) + ' 0 R'); }
+  objects[pagesNum] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + NUM_PAGES + ' >>';
+
+  objects[fontNum] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+
+  var topY = pageH - marginY - fontSize;
+  for (var pi = 0; pi < NUM_PAGES; pi++){
+    var pageLines = pages[pi];
+    var content = 'BT\n/F1 ' + fontSize + ' Tf\n1 0 0 1 ' + marginX + ' ' + topY + ' Tm\n';
+    for (var li = 0; li < pageLines.length; li++){
+      if (li > 0) content += '0 -' + leading + ' Td\n';
+      var escaped = escapePdfBytes(pageLines[li]);
+      content += '(' + bytesToLatin1String(escaped) + ') Tj\n';
+    }
+    content += 'ET';
+    var contentObjNum = firstContentNum + pi;
+    objects[contentObjNum] = '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream';
+
+    var pageObjNum = firstPageNum + pi;
+    objects[pageObjNum] = '<< /Type /Page /Parent ' + pagesNum + ' 0 R /MediaBox [0 0 ' + pageW + ' ' + pageH + '] ' +
+      '/Resources << /Font << /F1 ' + fontNum + ' 0 R >> >> /Contents ' + contentObjNum + ' 0 R >>';
+  }
+
+  // ---- serialize with xref ----
+  var out = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';
+  var offsets = [0]; // offsets[n] = byte offset of object n
+  for (var n = 1; n <= totalObjects; n++){
+    offsets[n] = out.length;
+    out += n + ' 0 obj\n' + objects[n] + '\nendobj\n';
+  }
+  var xrefStart = out.length;
+  out += 'xref\n0 ' + (totalObjects + 1) + '\n';
+  out += '0000000000 65535 f\r\n';
+  for (var n2 = 1; n2 <= totalObjects; n2++){
+    var off = String(offsets[n2]);
+    while (off.length < 10) off = '0' + off;
+    out += off + ' 00000 n\r\n';
+  }
+  out += 'trailer\n<< /Size ' + (totalObjects + 1) + ' /Root ' + catalogNum + ' 0 R >>\n';
+  out += 'startxref\n' + xrefStart + '\n%%EOF';
+
+  // out is a binary string (1 char = 1 byte, since all bytes are <256 by construction)
+  var bytes = new Uint8Array(out.length);
+  for (var i2 = 0; i2 < out.length; i2++){ bytes[i2] = out.charCodeAt(i2) & 0xFF; }
+  return bytes;
+}
+
+/* ============================== plain text ============================== */
+function buildTxtBytes(text){
+  return new TextEncoder().encode(String(text));
+}
+
+if (typeof module !== 'undefined' && module.exports){
+  module.exports = { buildDocxBytes: buildDocxBytes, buildPdfBytes: buildPdfBytes, buildTxtBytes: buildTxtBytes, crc32: crc32, buildZip: buildZip };
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+  function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+  // Fisher–Yates shuffle — used so the criterion sentences don't always read in
+  // the same fixed order across generations (same convention as the other tools).
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  // ---------- barème : 4 niveaux -> fraction des points du critère ----------
+  var LEVELS = [
+    { key:'aConsolider', label:'À consolider', frac:0.20 },
+    { key:'fragile', label:'Fragile', frac:0.50 },
+    { key:'satisfaisant', label:'Satisfaisant', frac:0.75 },
+    { key:'maitrise', label:'Maîtrisé', frac:1.00 }
+  ];
+  var LEVEL_BY_KEY = {};
+  LEVELS.forEach(function(lv){ LEVEL_BY_KEY[lv.key] = lv; });
+
+  // Chaque phrase complète "Le critère « X » est ___." — fonctionne quel que soit
+  // le libellé du critère (saisi librement par l'enseignant), sans accord à gérer.
+  var LEVEL_PHRASES = {
+    aConsolider: [
+      'encore à consolider avant une prochaine évaluation',
+      'à retravailler en priorité',
+      'un point qui demande un travail plus approfondi'
+    ],
+    fragile: [
+      'encore fragile, avec des bases qui restent à affermir',
+      'inégalement maîtrisé, des efforts sont encore nécessaires',
+      'globalement identifié mais pas encore stabilisé'
+    ],
+    satisfaisant: [
+      'globalement maîtrisé, avec quelques points à affiner',
+      'satisfaisant dans l\'ensemble',
+      'bien géré, avec de petites imprécisions'
+    ],
+    maitrise: [
+      'pleinement maîtrisé',
+      'un point fort de cette copie',
+      'très bien traité'
+    ]
+  };
+
+  var CLOSING = {
+    encourageant: ['Je vous encourage à poursuivre dans cette voie.', 'Continuez ainsi, ce travail est prometteur.'],
+    neutre: ['À poursuivre dans cette dynamique.', 'Poursuivez les efforts engagés.'],
+    vigilant: ['Une préparation plus approfondie est attendue la prochaine fois.', 'Un travail plus régulier est nécessaire pour progresser.'],
+    aucune: null
+  };
+
+  // ---------- état de la grille de critères ----------
+  var uid = 0;
+  function newCriterion(label, points){
+    return { id: 'c' + (uid++), label: label || '', points: (points === undefined ? 4 : points), level: '' };
+  }
+  var criteria = [
+    newCriterion('Respect de la consigne / du sujet', 4),
+    newCriterion('Structure / organisation des idées', 4),
+    newCriterion('Contenu / pertinence', 6),
+    newCriterion('Expression écrite / orthographe', 4),
+    newCriterion('Présentation / soin', 2)
+  ];
+
+  function totalPoints(){
+    return criteria.reduce(function(s, c){ return s + (parseFloat(c.points) || 0); }, 0);
+  }
+  function earnedPoints(){
+    return criteria.reduce(function(s, c){
+      if(!c.level) return s;
+      return s + (parseFloat(c.points) || 0) * LEVEL_BY_KEY[c.level].frac;
+    }, 0);
+  }
+  function gradedCount(){
+    return criteria.filter(function(c){ return c.level; }).length;
+  }
+  function fmtNote(n){
+    return (Math.round(n * 10) / 10).toString().replace('.', ',');
+  }
+  function critLabel(c, idx){
+    return c.label ? ('« ' + c.label + ' »') : ('le critère ' + (idx + 1));
+  }
+
+  function updateLiveScore(){
+    var el = document.getElementById('liveScore');
+    if(!el) return;
+    var tot = totalPoints();
+    var earned = earnedPoints();
+    var graded = gradedCount();
+    var n = criteria.length;
+    el.textContent = 'Note actuelle : ' + fmtNote(earned) + ' / ' + fmtNote(tot) +
+      (graded < n ? ' (provisoire — ' + graded + '/' + n + ' critère' + (n > 1 ? 's' : '') + ' noté' + (graded > 1 ? 's' : '') + ')' : '');
+  }
+
+  function renderCriteria(){
+    var container = document.getElementById('criteriaList');
+    container.innerHTML = '';
+    criteria.forEach(function(c){
+      var row = document.createElement('div');
+      row.className = 'crit-row';
+
+      var top = document.createElement('div');
+      top.className = 'crit-row-top';
+
+      var labelInput = document.createElement('input');
+      labelInput.type = 'text';
+      labelInput.className = 'crit-label';
+      labelInput.value = c.label;
+      labelInput.placeholder = 'Nom du critère';
+      labelInput.addEventListener('input', function(){ c.label = this.value; });
+
+      top.appendChild(labelInput);
+
+      var bottom = document.createElement('div');
+      bottom.className = 'crit-row-bottom';
+
+      var levelsRow = document.createElement('div');
+      levelsRow.className = 'chip-group crit-levels';
+      LEVELS.forEach(function(lv){
+        var lbl = document.createElement('label');
+        lbl.className = 'chip';
+        var input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'level-' + c.id;
+        input.value = lv.key;
+        if(c.level === lv.key) input.checked = true;
+        input.addEventListener('change', function(){
+          c.level = lv.key;
+          updateLiveScore();
+        });
+        var span = document.createElement('span');
+        span.textContent = lv.label;
+        lbl.appendChild(input);
+        lbl.appendChild(span);
+        levelsRow.appendChild(lbl);
+      });
+
+      var ptsInput = document.createElement('input');
+      ptsInput.type = 'number';
+      ptsInput.className = 'crit-points';
+      ptsInput.min = '0';
+      ptsInput.step = '0.5';
+      ptsInput.value = c.points;
+      ptsInput.addEventListener('input', function(){
+        c.points = this.value === '' ? 0 : parseFloat(this.value);
+        updateLiveScore();
+      });
+
+      var ptsWrap = document.createElement('span');
+      ptsWrap.className = 'crit-points-wrap';
+      var ptsSuffix = document.createElement('span');
+      ptsSuffix.className = 'crit-points-suffix';
+      ptsSuffix.textContent = 'pts';
+      ptsWrap.appendChild(ptsInput);
+      ptsWrap.appendChild(ptsSuffix);
+
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'crit-remove';
+      removeBtn.title = 'Supprimer ce critère';
+      removeBtn.setAttribute('aria-label', 'Supprimer ce critère');
+      removeBtn.textContent = '✕';
+      removeBtn.addEventListener('click', function(){
+        criteria = criteria.filter(function(x){ return x.id !== c.id; });
+        renderCriteria();
+      });
+
+      var ptsRemoveWrap = document.createElement('span');
+      ptsRemoveWrap.style.display = 'flex';
+      ptsRemoveWrap.style.alignItems = 'center';
+      ptsRemoveWrap.style.gap = '8px';
+      ptsRemoveWrap.appendChild(ptsWrap);
+      ptsRemoveWrap.appendChild(removeBtn);
+
+      bottom.appendChild(levelsRow);
+      bottom.appendChild(ptsRemoveWrap);
+
+      row.appendChild(top);
+      row.appendChild(bottom);
+      container.appendChild(row);
+    });
+    updateLiveScore();
+  }
+
+  document.getElementById('addCritBtn').addEventListener('click', function(){
+    criteria.push(newCriterion('', 4));
+    renderCriteria();
+  });
+
+  renderCriteria();
+
+  // ---------- collect / assemble ----------
+  function collect(){
+    return {
+      apprenant: document.getElementById('apprenant').value.trim(),
+      matiere: document.getElementById('matiere').value.trim(),
+      exercice: document.getElementById('exercice').value.trim(),
+      detail: document.getElementById('detail').value.trim(),
+      registre: document.querySelector('input[name="registre"]:checked').value
+    };
+  }
+
+  function assemble(){
+    var f = collect();
+    if(!f.apprenant){
+      alert('Merci de renseigner au moins le prénom de l\'apprenant.');
+      return null;
+    }
+    if(criteria.length === 0){
+      alert('Ajoutez au moins un critère avant de générer le commentaire.');
+      return null;
+    }
+    var missing = criteria.filter(function(c){ return !c.level; });
+    if(missing.length){
+      alert('Merci de choisir un niveau pour chaque critère (' + missing.length + ' restant' + (missing.length > 1 ? 's' : '') + ').');
+      return null;
+    }
+
+    var tot = totalPoints();
+    var earned = earnedPoints();
+    var onSubject = f.exercice ? (' sur ' + '« ' + f.exercice + ' »') : (f.matiere ? (' en ' + f.matiere) : '');
+
+    var lines = [];
+    lines.push(cap(f.apprenant) + ' obtient ' + fmtNote(earned) + ' / ' + fmtNote(tot) + onSubject + '.');
+
+    var critSentences = criteria.map(function(c, idx){
+      var phrase = pickRandom(LEVEL_PHRASES[c.level]);
+      return 'Le critère ' + critLabel(c, idx) + ' est ' + phrase + '.';
+    });
+    critSentences = shuffle(critSentences);
+    lines = lines.concat(critSentences);
+
+    // point fort / point à travailler — seulement s'il y a un vrai écart de niveau
+    if(criteria.length > 1){
+      var sorted = criteria.map(function(c, idx){ return { c: c, idx: idx }; }).sort(function(a, b){
+        return LEVEL_BY_KEY[b.c.level].frac - LEVEL_BY_KEY[a.c.level].frac;
+      });
+      var best = sorted[0], worst = sorted[sorted.length - 1];
+      if(best.c.level !== worst.c.level){
+        lines.push('Point fort : ' + critLabel(best.c, best.idx) + '. Point à travailler en priorité : ' + critLabel(worst.c, worst.idx) + '.');
+      }
+    }
+
+    if(f.detail){ lines.push(cap(f.detail) + (/[.!?]$/.test(f.detail) ? '' : '.')); }
+    if(CLOSING[f.registre]){ lines.push(pickRandom(CLOSING[f.registre])); }
+
+    return lines.join(' ');
+  }
+
+  function scrollToOutput(){
+    var panel = document.getElementById('outputPanel');
+    if(!panel) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    panel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    panel.classList.remove('just-generated');
+    void panel.offsetWidth; // force reflow so the flash can restart on consecutive clicks
+    panel.classList.add('just-generated');
+    setTimeout(function(){ panel.classList.remove('just-generated'); }, 1500);
+  }
+
+  function updateCount(text){
+    var n = text.length;
+    var countEl = document.getElementById('charCount');
+    countEl.textContent = n + ' caractère' + (n === 1 ? '' : 's');
+  }
+
+  function showLetter(){
+    var text = assemble();
+    if(text === null) return;
+    document.getElementById('emptyState').style.display = 'none';
+    var out = document.getElementById('letterOut');
+    out.style.display = '';
+    out.value = text;
+    document.getElementById('outActions').style.display = '';
+    document.getElementById('metaRow').style.display = 'flex';
+    document.getElementById('exportRow').style.display = '';
+    setExportMsg('');
+    updateCount(text);
+    scrollToOutput();
+  }
+
+  document.getElementById('genBtn').addEventListener('click', showLetter);
+  document.getElementById('variantBtn').addEventListener('click', showLetter);
+  document.getElementById('letterOut').addEventListener('input', function(){
+    updateCount(this.value);
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var out = document.getElementById('letterOut');
+    var msg = document.getElementById('copiedMsg');
+    function flash(){ msg.classList.add('show'); setTimeout(function(){ msg.classList.remove('show'); }, 1600); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(out.value).then(flash).catch(function(){
+        out.focus(); out.select(); flash();
+      });
+    } else {
+      out.focus(); out.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      flash();
+    }
+  });
+
+  // ---------- export (PDF / Word / Texte) ----------
+  function slug(s){
+    var v = String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    v = v.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+    return v || 'document';
+  }
+  function exportFilenameBase(){
+    var f = collect();
+    var parts = ['correction', slug(f.apprenant), slug(f.matiere)].filter(function(p){ return p && p !== 'document'; });
+    return parts.length ? parts.join('-') : 'grille-correction';
+  }
+  function setExportMsg(text, kind){
+    var el = document.getElementById('exportMsg');
+    el.textContent = text || '';
+    el.className = 'export-msg' + (kind ? ' ' + kind : '');
+  }
+  // Running inside a published Claude Artifact iframe? window.claude is present there
+  // (whether or not any capability was granted) and absent on a plain static host
+  // (GitHub Pages, Netlify, a file opened directly, etc.).
+  function inClaudeArtifact(){
+    return typeof window.claude !== 'undefined' && window.claude && typeof window.claude.use === 'function';
+  }
+  var _downloadsPromise = null;
+  function ensureDownloads(){
+    if(!_downloadsPromise){
+      _downloadsPromise = inClaudeArtifact()
+        ? window.claude.use('downloads').catch(function(){ return null; })
+        : Promise.resolve(null);
+    }
+    return _downloadsPromise;
+  }
+  function nativeDownload(filename, bytes){
+    var blob = new Blob([bytes]);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+  function doExport(kind){
+    var out = document.getElementById('letterOut');
+    var text = out.value;
+    if(!text){ return; }
+    var filename = exportFilenameBase() + '.' + kind;
+    var bytes;
+    if(kind === 'txt'){ bytes = buildTxtBytes(text); }
+    else if(kind === 'pdf'){ bytes = buildPdfBytes(text); }
+    else if(kind === 'docx'){ bytes = buildDocxBytes(text); }
+    else { return; }
+
+    if(!inClaudeArtifact()){
+      try{
+        nativeDownload(filename, bytes);
+        setExportMsg('Fichier téléchargé ✓', 'ok');
+      }catch(e){
+        setExportMsg('Échec du téléchargement — réessayez, ou utilisez Copier le texte.', 'err');
+      }
+      return;
+    }
+
+    setExportMsg('Préparation du fichier…');
+    ensureDownloads().then(function(downloads){
+      if(!downloads){
+        setExportMsg('Export indisponible dans cette vue (page partagée publiquement) — utilisez « Copier le texte ».', 'err');
+        return;
+      }
+      return downloads.save({ filename: filename, data: bytes }).then(function(){
+        setExportMsg('Fichier enregistré ✓', 'ok');
+      });
+    }).catch(function(err){
+      var code = err && err.code;
+      if(code === 'declined'){ setExportMsg(''); }
+      else if(code === 'extension_not_enabled'){ setExportMsg('Export .' + kind + ' non disponible ici — essayez Texte (.txt).', 'err'); }
+      else if(code === 'rate_limited'){ setExportMsg('Un export est déjà en cours — patientez puis réessayez.', 'err'); }
+      else { setExportMsg('Échec de l\'export — réessayez, ou utilisez Copier le texte.', 'err'); }
+    });
+  }
+  document.getElementById('exportTxtBtn').addEventListener('click', function(){ doExport('txt'); });
+  document.getElementById('exportPdfBtn').addEventListener('click', function(){ doExport('pdf'); });
+  document.getElementById('exportDocxBtn').addEventListener('click', function(){ doExport('docx'); });
+
+})();
+</script>
+</body>
+</html>

@@ -25,6 +25,10 @@ documents administratifs prêts à copier ou à exporter (PDF / Word / texte).
   texte collé et adapte sa présentation (police, taille, espacements, fond de
   page, une phrase par ligne) pour les besoins dys/PAP, sans jamais modifier
   le texte lui-même
+- **Grille de correction assistée** (`grille-correction-assistee.html`) —
+  notez chaque critère d'une grille modifiable (respect de la consigne,
+  structure, contenu, expression écrite, présentation…), la note est
+  calculée et un commentaire de correction est rédigé automatiquement
 
 ## Utiliser ce site
 
