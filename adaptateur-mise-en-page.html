@@ -205,9 +205,24 @@
       <div class="panel-head"><h2>1 — Coller &amp; régler</h2></div>
       <div class="panel-body">
         <form id="fieldForm">
-          <div class="field">
+          <fieldset>
+            <legend>Source</legend>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="sourceMode" value="texte" checked><span>Texte collé</span></label>
+              <label class="chip"><input type="radio" name="sourceMode" value="docx"><span>Document Word (.docx)</span></label>
+            </div>
+          </fieldset>
+
+          <div class="field" id="textSourceField">
             <label for="sourceText">Texte à adapter <span class="req">*</span></label>
             <textarea id="sourceText" placeholder="Collez ici un énoncé, une consigne, un texte de cours…"></textarea>
+          </div>
+
+          <div class="field" id="docxSourceField" style="display:none;">
+            <label for="docxFile">Document Word à adapter (.docx) <span class="req">*</span></label>
+            <input type="file" id="docxFile" accept=".docx">
+            <p class="hint" id="docxScopeHint">Seul le corps du texte est adapté : en-têtes, pieds de page et notes de bas de page gardent leur police d'origine. Chaque taille de texte existante (titres, corps de texte…) est agrandie dans les mêmes proportions, pour garder les titres plus grands que le corps du texte. Fichiers <strong>.docx</strong> uniquement (pas les anciens .doc) — le fichier obtenu peut être un peu plus volumineux que l'original, sans effet sur son contenu.</p>
+            <p class="hint" id="docxUnsupportedHint" style="display:none; color:var(--err);">Cette fonctionnalité nécessite un navigateur récent (Chrome, Edge, Firefox ou Safari à jour). Utilisez « Texte collé » à la place, ou mettez à jour votre navigateur.</p>
           </div>
 
           <fieldset>
@@ -266,14 +281,17 @@
                 </div>
               </div>
             </div>
-            <label class="checkbox-line" style="margin-top:4px;">
-              <input type="checkbox" id="oneSentencePerLine">
-              <span>Une phrase par ligne</span>
-            </label>
-            <p class="hint">Le texte est toujours aligné à gauche (jamais justifié) : la justification crée des espaces irréguliers entre les mots, ce qui gêne la lecture. Ces réglages sont des choix de présentation courants dans les adaptations PAP/dys ; s'il existe un PAP pour l'apprenant concerné, suivez en priorité ses préconisations. « Une phrase par ligne » repère les points, points d'exclamation et d'interrogation : quelques cas particuliers (abréviations, initiales) peuvent ne pas être détectés parfaitement — relisez l'aperçu avant d'exporter.</p>
+            <div class="field" id="oneSentenceField">
+              <label class="checkbox-line" style="margin-top:4px;">
+                <input type="checkbox" id="oneSentencePerLine">
+                <span>Une phrase par ligne</span>
+              </label>
+            </div>
+            <p class="hint" id="oneSentenceUnavailableHint" style="display:none;">« Une phrase par ligne » n'est pas disponible pour un document Word importé (le texte y est déjà réparti en plusieurs éléments internes, et découper au bon endroit sans risquer d'abîmer la mise en forme d'origine n'est pas fiable) — cette option reste disponible en mode « Texte collé ».</p>
+            <p class="hint" id="presentationHint">Le texte est toujours aligné à gauche (jamais justifié) : la justification crée des espaces irréguliers entre les mots, ce qui gêne la lecture. Ces réglages sont des choix de présentation courants dans les adaptations PAP/dys ; s'il existe un PAP pour l'apprenant concerné, suivez en priorité ses préconisations. « Une phrase par ligne » repère les points, points d'exclamation et d'interrogation : quelques cas particuliers (abréviations, initiales) peuvent ne pas être détectés parfaitement — relisez l'aperçu avant d'exporter.</p>
           </fieldset>
 
-          <p class="hint" style="margin-top:-6px; margin-bottom:16px;"><strong>Ce que fait l'outil :</strong> il ne modifie jamais les mots du texte collé — ni orthographe, ni vocabulaire, ni sens. Il change uniquement la présentation : police, taille, espacements, fond, et le découpage en lignes si « Une phrase par ligne » est coché (un retour à la ligne est inséré après chaque point, sans toucher au texte lui-même).</p>
+          <p class="hint" id="whatItDoesHint" style="margin-top:-6px; margin-bottom:16px;"><strong>Ce que fait l'outil :</strong> il ne modifie jamais les mots du texte collé — ni orthographe, ni vocabulaire, ni sens. Il change uniquement la présentation : police, taille, espacements, fond, et le découpage en lignes si « Une phrase par ligne » est coché (un retour à la ligne est inséré après chaque point, sans toucher au texte lui-même).</p>
 
           <button type="button" class="btn" id="genBtn">Adapter la mise en page</button>
         </form>
@@ -298,8 +316,16 @@
             <button type="button" class="btn btn-ghost" id="exportPdfBtn">PDF</button>
             <button type="button" class="btn btn-ghost" id="exportDocxBtn">Word (.docx)</button>
           </div>
-          <p class="hint" style="margin-top:10px;">Texte (.txt) : conserve le découpage en lignes, pas la mise en forme (un fichier texte n'a ni police ni couleur). PDF : police, taille, interligne, espacements et fond de page sont fidèlement reproduits, y compris à l'impression ; la police est toujours rendue en caractères sans-serif standard (rendu proche de Verdana/Arial), quel que soit le choix ci-dessus — c'est le format le plus fiable pour un fond de page garanti. Word (.docx) : taille, interligne, espacements et fond de page s'affichent à l'écran ; si la police choisie n'est pas installée sur l'ordinateur qui ouvre le fichier, le document indique à Word de la remplacer par une police proche (Arial) plutôt que de laisser Word choisir seul. À l'impression ou dans un export PDF depuis Word, le fond de page peut ne pas apparaître selon les réglages de Word (option « Imprimer les couleurs et images d'arrière-plan », désactivée par défaut) — préférez l'export PDF ci-dessus si le fond doit être garanti à l'impression.</p>
+          <p class="hint" style="margin-top:10px;">Texte (.txt) : conserve le découpage en lignes, pas la mise en forme (un fichier texte n'a ni police ni couleur). PDF : police, taille, interligne, espacements et fond de page sont fidèlement reproduits, y compris à l'impression ; la police est toujours rendue en caractères sans-serif standard (rendu proche de Verdana/Arial), quel que soit le choix ci-dessus — c'est le format le plus fiable pour un fond de page garanti. Word (.docx) : taille, interligne, espacements et fond de page s'affichent à l'écran ; si la police choisie n'est pas installée sur l'ordinateur qui ouvre le fichier, le document indique à Word de la remplacer par une police proche (Arial) plutôt que de laisser Word choisir seul. À l'impression ou dans un export PDF depuis Word, le fond de page peut ne pas apparaître : c'est un réglage de l'application Word (pas du fichier), désactivé par défaut — Fichier → Options → Affichage → « Imprimer les couleurs et images d'arrière-plan » (Word Mac : menu Word → Préférences → Impression → « Couleurs et images d'arrière-plan »), à activer une fois sur chaque poste. Sans cette étape, préférez l'export PDF ci-dessus si le fond doit être garanti à l'impression.</p>
           <div class="export-msg" id="exportMsg"></div>
+        </div>
+
+        <div id="docxResult" style="display:none">
+          <p class="hint" style="margin-top:0;" id="docxResultInfo"></p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-ghost" id="docxDownloadBtn">Télécharger le document Word adapté</button>
+          </div>
+          <div class="export-msg" id="docxResultMsg"></div>
         </div>
       </div>
     </section>
@@ -860,8 +886,6 @@ if (typeof module !== 'undefined' && module.exports){
     scrollToOutput();
   }
 
-  document.getElementById('genBtn').addEventListener('click', show);
-
   // Presentation-only controls restyle the existing preview live (no re-scroll,
   // no flash — this isn't a fresh "generation", and it must never overwrite text
   // the user may already have hand-edited in the preview).
@@ -966,6 +990,38 @@ if (typeof module !== 'undefined' && module.exports){
     };
   }
 
+  // Shared by every export path (txt/pdf/docx preview export, and the whole-document
+  // Word upload below): hands `bytes` to the viewer as `filename`, working both inside
+  // a published Claude Artifact (no direct downloads — needs the `downloads` capability)
+  // and on a plain static host (GitHub Pages, the offline copy, a file opened directly).
+  function deliverDownload(filename, bytes, setMsg, kindLabel){
+    if (!inClaudeArtifact()){
+      try{
+        nativeDownload(filename, bytes);
+        setMsg('Fichier téléchargé ✓', 'ok');
+      }catch(e){
+        setMsg('Échec du téléchargement — réessayez.', 'err');
+      }
+      return;
+    }
+    setMsg('Préparation du fichier…');
+    ensureDownloads().then(function(downloads){
+      if (!downloads){
+        setMsg('Export indisponible dans cette vue (page partagée publiquement).', 'err');
+        return;
+      }
+      return downloads.save({ filename: filename, data: bytes }).then(function(){
+        setMsg('Fichier enregistré ✓', 'ok');
+      });
+    }).catch(function(err){
+      var code = err && err.code;
+      if (code === 'declined'){ setMsg(''); }
+      else if (code === 'extension_not_enabled'){ setMsg('Export ' + (kindLabel || '') + ' non disponible ici.', 'err'); }
+      else if (code === 'rate_limited'){ setMsg('Un export est déjà en cours — patientez puis réessayez.', 'err'); }
+      else { setMsg('Échec de l\'export — réessayez.', 'err'); }
+    });
+  }
+
   function doExport(kind){
     var out = document.getElementById('previewOut');
     var text = out.value;
@@ -977,39 +1033,452 @@ if (typeof module !== 'undefined' && module.exports){
     else if (kind === 'pdf'){ bytes = buildPdfBytes(text, pdfOpts(s)); }
     else if (kind === 'docx'){ bytes = buildDocxBytes(text, docxOpts(s)); }
     else { return; }
-
-    // Outside the Claude Artifact sandbox (e.g. hosted on your own site) a plain
-    // browser download always works — no capability needed, no confirmation prompt.
-    if (!inClaudeArtifact()){
-      try{
-        nativeDownload(filename, bytes);
-        setExportMsg('Fichier téléchargé ✓', 'ok');
-      }catch(e){
-        setExportMsg('Échec du téléchargement — réessayez, ou utilisez Copier le texte.', 'err');
-      }
-      return;
-    }
-
-    setExportMsg('Préparation du fichier…');
-    ensureDownloads().then(function(downloads){
-      if (!downloads){
-        setExportMsg('Export indisponible dans cette vue (page partagée publiquement) — utilisez « Copier le texte ».', 'err');
-        return;
-      }
-      return downloads.save({ filename: filename, data: bytes }).then(function(){
-        setExportMsg('Fichier enregistré ✓', 'ok');
-      });
-    }).catch(function(err){
-      var code = err && err.code;
-      if (code === 'declined'){ setExportMsg(''); }
-      else if (code === 'extension_not_enabled'){ setExportMsg('Export .' + kind + ' non disponible ici — essayez Texte (.txt).', 'err'); }
-      else if (code === 'rate_limited'){ setExportMsg('Un export est déjà en cours — patientez puis réessayez.', 'err'); }
-      else { setExportMsg('Échec de l\'export — réessayez, ou utilisez Copier le texte.', 'err'); }
-    });
+    deliverDownload(filename, bytes, setExportMsg, '.' + kind + ' — essayez Texte (.txt)');
   }
   document.getElementById('exportTxtBtn').addEventListener('click', function(){ doExport('txt'); });
   document.getElementById('exportPdfBtn').addEventListener('click', function(){ doExport('pdf'); });
   document.getElementById('exportDocxBtn').addEventListener('click', function(){ doExport('docx'); });
+
+  // ================= Document Word (.docx) import & whole-document transform =================
+  // Reads an uploaded .docx (a ZIP of XML parts), rewrites font/size/spacing on every
+  // paragraph and run in the main body, adds the page background, and re-packages it —
+  // all client-side, using only native browser APIs (DecompressionStream to unzip the
+  // real deflate-compressed parts Word produces; DOMParser/XMLSerializer to edit the XML).
+  // Headers, footers and footnotes are separate parts and are deliberately left untouched
+  // (scope decision — see the hint text next to the upload field).
+
+  function readU16(buf, off){ return buf[off] | (buf[off+1] << 8); }
+  function readU32(buf, off){ return (buf[off] | (buf[off+1] << 8) | (buf[off+2] << 16) | (buf[off+3] << 24)) >>> 0; }
+
+  function findEOCD(buf){
+    var sig = 0x06054b50;
+    var minLen = 22;
+    var maxCommentLen = 65535;
+    var start = Math.max(0, buf.length - minLen - maxCommentLen);
+    for (var i = buf.length - minLen; i >= start; i--){
+      if (readU32(buf, i) === sig){ return i; }
+    }
+    throw new Error("Structure ZIP introuvable — le fichier est peut-être corrompu, ou n'est pas un vrai .docx.");
+  }
+
+  function parseZipCentralDirectory(buf){
+    var eocdOff = findEOCD(buf);
+    var cdEntries = readU16(buf, eocdOff + 10);
+    var cdOffset = readU32(buf, eocdOff + 16);
+    var entries = [];
+    var off = cdOffset;
+    for (var i = 0; i < cdEntries; i++){
+      var sig = readU32(buf, off);
+      if (sig !== 0x02014b50) throw new Error("Table centrale ZIP invalide dans ce fichier .docx.");
+      var method = readU16(buf, off + 10);
+      var compSize = readU32(buf, off + 20);
+      var nameLen = readU16(buf, off + 28);
+      var extraLen = readU16(buf, off + 30);
+      var commentLen = readU16(buf, off + 32);
+      var localHeaderOffset = readU32(buf, off + 42);
+      var name = new TextDecoder('utf-8').decode(buf.slice(off + 46, off + 46 + nameLen));
+      entries.push({ name: name, method: method, compSize: compSize, localHeaderOffset: localHeaderOffset });
+      off += 46 + nameLen + extraLen + commentLen;
+    }
+    for (var j = 0; j < entries.length; j++){
+      var e = entries[j];
+      var lo = e.localHeaderOffset;
+      if (readU32(buf, lo) !== 0x04034b50) throw new Error("En-tête local ZIP invalide pour " + e.name + ".");
+      var lNameLen = readU16(buf, lo + 26);
+      var lExtraLen = readU16(buf, lo + 28);
+      var dataStart = lo + 30 + lNameLen + lExtraLen;
+      e.compressedData = buf.slice(dataStart, dataStart + e.compSize);
+    }
+    return entries;
+  }
+
+  async function inflateRaw(bytes){
+    var ds = new DecompressionStream('deflate-raw');
+    var stream = new Blob([bytes]).stream().pipeThrough(ds);
+    var buf = await new Response(stream).arrayBuffer();
+    return new Uint8Array(buf);
+  }
+
+  async function readDocxAsMap(fileBytes){
+    var entries = parseZipCentralDirectory(fileBytes);
+    var map = new Map();
+    for (var i = 0; i < entries.length; i++){
+      var e = entries[i];
+      var data;
+      if (e.method === 0){ data = new Uint8Array(e.compressedData); }
+      else if (e.method === 8){ data = await inflateRaw(e.compressedData); }
+      else { throw new Error("Méthode de compression non prise en charge pour " + e.name + "."); }
+      map.set(e.name, data);
+    }
+    return map;
+  }
+
+  var W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+  function parseXml(text){
+    var doc = new DOMParser().parseFromString(text, 'application/xml');
+    if (doc.getElementsByTagName('parsererror').length){ throw new Error('XML interne du document invalide.'); }
+    return doc;
+  }
+  function serializeXml(doc){ return new XMLSerializer().serializeToString(doc); }
+  function wEl(doc, localName){ return doc.createElementNS(W_NS, 'w:' + localName); }
+  function wAttr(el, name, value){ el.setAttributeNS(W_NS, 'w:' + name, String(value)); }
+  function firstChildNS(parent, localName){
+    var kids = parent.childNodes;
+    for (var i = 0; i < kids.length; i++){
+      var k = kids[i];
+      if (k.nodeType === 1 && k.localName === localName && k.namespaceURI === W_NS){ return k; }
+    }
+    return null;
+  }
+  function removeChildNS(parent, localName){
+    var el = firstChildNS(parent, localName);
+    if (el){ parent.removeChild(el); }
+    return el;
+  }
+
+  // Resolves, for a given paragraph style id, the effective run font size (half-points)
+  // by walking w:basedOn chains in styles.xml, falling back to docDefaults, then Word's
+  // own hardcoded ultimate default — this is what lets "keep proportions" scale a
+  // heading's inherited size the same way it scales body text's inherited size.
+  function buildStyleSizeResolver(stylesXmlText){
+    var docDefaultSz = 20;
+    var styleDefs = {};
+    if (stylesXmlText){
+      var doc = parseXml(stylesXmlText);
+      var dd = doc.getElementsByTagNameNS(W_NS, 'docDefaults')[0];
+      if (dd){
+        var rPrDefault = dd.getElementsByTagNameNS(W_NS, 'rPrDefault')[0];
+        if (rPrDefault){
+          var szEl = rPrDefault.getElementsByTagNameNS(W_NS, 'sz')[0];
+          if (szEl){ docDefaultSz = parseInt(szEl.getAttributeNS(W_NS, 'val'), 10) || docDefaultSz; }
+        }
+      }
+      var styleNodes = doc.getElementsByTagNameNS(W_NS, 'style');
+      for (var i = 0; i < styleNodes.length; i++){
+        var s = styleNodes[i];
+        if (s.getAttributeNS(W_NS, 'type') !== 'paragraph'){ continue; }
+        var id = s.getAttributeNS(W_NS, 'styleId');
+        if (!id){ continue; }
+        var basedOnEl = s.getElementsByTagNameNS(W_NS, 'basedOn')[0];
+        var rPr = null;
+        var kids = s.childNodes;
+        for (var k = 0; k < kids.length; k++){
+          if (kids[k].nodeType === 1 && kids[k].localName === 'rPr' && kids[k].namespaceURI === W_NS){ rPr = kids[k]; break; }
+        }
+        var sz = null;
+        if (rPr){
+          var szN = rPr.getElementsByTagNameNS(W_NS, 'sz')[0];
+          if (szN){ sz = parseInt(szN.getAttributeNS(W_NS, 'val'), 10) || null; }
+        }
+        styleDefs[id] = { sz: sz, basedOn: basedOnEl ? basedOnEl.getAttributeNS(W_NS, 'val') : null };
+      }
+    }
+    var cache = {};
+    function resolve(styleId, depth){
+      depth = depth || 0;
+      if (!styleId || depth > 20){ return docDefaultSz; }
+      if (cache[styleId] !== undefined){ return cache[styleId]; }
+      var def = styleDefs[styleId];
+      if (!def){ return docDefaultSz; }
+      var result = (def.sz != null) ? def.sz : resolve(def.basedOn, depth + 1);
+      cache[styleId] = result;
+      return result;
+    }
+    return function(styleId){ return styleId ? resolve(styleId) : docDefaultSz; };
+  }
+
+  function transformDocumentXml(documentXmlText, stylesXmlText, opts){
+    var doc = parseXml(documentXmlText);
+    var resolveStyleSz = buildStyleSizeResolver(stylesXmlText);
+
+    var paragraphs = doc.getElementsByTagNameNS(W_NS, 'p');
+    for (var pi = 0; pi < paragraphs.length; pi++){
+      var p = paragraphs[pi];
+      var pPr = firstChildNS(p, 'pPr');
+      if (!pPr){ pPr = wEl(doc, 'pPr'); p.insertBefore(pPr, p.firstChild); }
+      removeChildNS(pPr, 'spacing');
+      var spacing = wEl(doc, 'spacing');
+      wAttr(spacing, 'line', opts.lineVal);
+      wAttr(spacing, 'lineRule', 'auto');
+      wAttr(spacing, 'after', opts.afterVal);
+      var pStyleEl = firstChildNS(pPr, 'pStyle');
+      if (pStyleEl){ pPr.insertBefore(spacing, pStyleEl.nextSibling); }
+      else { pPr.insertBefore(spacing, pPr.firstChild); }
+    }
+
+    var runs = doc.getElementsByTagNameNS(W_NS, 'r');
+    for (var ri = 0; ri < runs.length; ri++){
+      var r = runs[ri];
+      var rPr = firstChildNS(r, 'rPr');
+      if (!rPr){ rPr = wEl(doc, 'rPr'); r.insertBefore(rPr, r.firstChild); }
+
+      var existingSz = firstChildNS(rPr, 'sz');
+      var baseHalfPt;
+      if (existingSz){
+        baseHalfPt = parseInt(existingSz.getAttributeNS(W_NS, 'val'), 10) || 20;
+      } else {
+        var ownerP = r.parentNode;
+        while (ownerP && !(ownerP.nodeType === 1 && ownerP.localName === 'p' && ownerP.namespaceURI === W_NS)){
+          ownerP = ownerP.parentNode;
+        }
+        var ownerPStyleId = null;
+        if (ownerP){
+          var ownerPPr = firstChildNS(ownerP, 'pPr');
+          if (ownerPPr){
+            var psEl = firstChildNS(ownerPPr, 'pStyle');
+            if (psEl){ ownerPStyleId = psEl.getAttributeNS(W_NS, 'val'); }
+          }
+        }
+        baseHalfPt = resolveStyleSz(ownerPStyleId);
+      }
+      var newHalfPt = Math.max(8, Math.round(baseHalfPt * opts.sizeMultiplier));
+
+      removeChildNS(rPr, 'rFonts');
+      removeChildNS(rPr, 'sz');
+      removeChildNS(rPr, 'szCs');
+      if (opts.letterSpacingTwips){ removeChildNS(rPr, 'spacing'); }
+
+      var rFonts = wEl(doc, 'rFonts');
+      wAttr(rFonts, 'ascii', opts.fontName);
+      wAttr(rFonts, 'hAnsi', opts.fontName);
+      wAttr(rFonts, 'cs', opts.fontName);
+      rPr.appendChild(rFonts);
+
+      if (opts.letterSpacingTwips){
+        var charSpacing = wEl(doc, 'spacing');
+        wAttr(charSpacing, 'val', opts.letterSpacingTwips);
+        rPr.appendChild(charSpacing);
+      }
+
+      var szEl2 = wEl(doc, 'sz'); wAttr(szEl2, 'val', newHalfPt); rPr.appendChild(szEl2);
+      var szCsEl = wEl(doc, 'szCs'); wAttr(szCsEl, 'val', newHalfPt); rPr.appendChild(szCsEl);
+    }
+
+    var docEl = doc.documentElement;
+    var existingBg = firstChildNS(docEl, 'background');
+    if (existingBg){ docEl.removeChild(existingBg); }
+    if (opts.bgHex){
+      var bg = wEl(doc, 'background');
+      wAttr(bg, 'color', opts.bgHex);
+      docEl.insertBefore(bg, docEl.firstChild);
+    }
+    return serializeXml(doc);
+  }
+
+  function ensureDisplayBackgroundShape(settingsXmlText){
+    var doc = parseXml(settingsXmlText);
+    var root = doc.documentElement;
+    if (!firstChildNS(root, 'displayBackgroundShape')){
+      root.insertBefore(wEl(doc, 'displayBackgroundShape'), root.firstChild);
+    }
+    return serializeXml(doc);
+  }
+  function buildSettingsXml(){
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+      '<w:settings xmlns:w="' + W_NS + '"><w:displayBackgroundShape/></w:settings>';
+  }
+  function ensureFontTableEntry(fontTableXmlText, fontName, fontAltName){
+    var doc = parseXml(fontTableXmlText);
+    var root = doc.documentElement;
+    var fonts = root.getElementsByTagNameNS(W_NS, 'font');
+    for (var i = 0; i < fonts.length; i++){
+      if (fonts[i].getAttributeNS(W_NS, 'name') === fontName){ return serializeXml(doc); }
+    }
+    var f = wEl(doc, 'font');
+    wAttr(f, 'name', fontName);
+    if (fontAltName){ var alt = wEl(doc, 'altName'); wAttr(alt, 'val', fontAltName); f.appendChild(alt); }
+    var fam = wEl(doc, 'family'); wAttr(fam, 'val', 'swiss'); f.appendChild(fam);
+    var pitch = wEl(doc, 'pitch'); wAttr(pitch, 'val', 'variable'); f.appendChild(pitch);
+    root.appendChild(f);
+    return serializeXml(doc);
+  }
+  function buildFontTableXml(fontName, fontAltName){
+    var namePart = '<w:font w:name="' + fontName + '">' +
+      (fontAltName ? '<w:altName w:val="' + fontAltName + '"/>' : '') +
+      '<w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font>';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n<w:fonts xmlns:w="' + W_NS + '">' + namePart + '</w:fonts>';
+  }
+  function ensurePartRegistered(map, o){
+    var ctText = new TextDecoder('utf-8').decode(map.get('[Content_Types].xml'));
+    if (ctText.indexOf(o.partName) === -1){
+      var ctDoc = parseXml(ctText);
+      var override = ctDoc.createElementNS('http://schemas.openxmlformats.org/package/2006/content-types', 'Override');
+      override.setAttribute('PartName', '/' + o.partName);
+      override.setAttribute('ContentType', o.contentType);
+      ctDoc.documentElement.appendChild(override);
+      map.set('[Content_Types].xml', new TextEncoder().encode(serializeXml(ctDoc)));
+    }
+    var relsName = 'word/_rels/document.xml.rels';
+    var relsBytes = map.get(relsName);
+    var relsText = relsBytes ? new TextDecoder('utf-8').decode(relsBytes) :
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+    if (relsText.indexOf(o.relTargetFromDocument) === -1){
+      var relsDoc = parseXml(relsText);
+      var maxId = 0;
+      var relEls = relsDoc.getElementsByTagName('Relationship');
+      for (var i = 0; i < relEls.length; i++){
+        var m = /^rId(\d+)$/.exec(relEls[i].getAttribute('Id') || '');
+        if (m){ maxId = Math.max(maxId, parseInt(m[1], 10)); }
+      }
+      var rel = relsDoc.createElementNS('http://schemas.openxmlformats.org/package/2006/relationships', 'Relationship');
+      rel.setAttribute('Id', 'rId' + (maxId + 1));
+      rel.setAttribute('Type', o.relType);
+      rel.setAttribute('Target', o.relTargetFromDocument);
+      relsDoc.documentElement.appendChild(rel);
+      map.set(relsName, new TextEncoder().encode(serializeXml(relsDoc)));
+    }
+  }
+
+  async function transformDocxFile(fileBytes, settings){
+    var map = await readDocxAsMap(fileBytes);
+    if (!map.has('word/document.xml')){
+      throw new Error("Ce fichier ne ressemble pas à un .docx valide (word/document.xml est introuvable).");
+    }
+    var documentXmlText = new TextDecoder('utf-8').decode(map.get('word/document.xml'));
+    var stylesXmlText = map.has('word/styles.xml') ? new TextDecoder('utf-8').decode(map.get('word/styles.xml')) : '';
+
+    var newDocumentXml = transformDocumentXml(documentXmlText, stylesXmlText, settings);
+    map.set('word/document.xml', new TextEncoder().encode(newDocumentXml));
+
+    if (map.has('word/settings.xml')){
+      var settingsText = new TextDecoder('utf-8').decode(map.get('word/settings.xml'));
+      map.set('word/settings.xml', new TextEncoder().encode(ensureDisplayBackgroundShape(settingsText)));
+    } else {
+      map.set('word/settings.xml', new TextEncoder().encode(buildSettingsXml()));
+      ensurePartRegistered(map, {
+        partName: 'word/settings.xml',
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml',
+        relType: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings',
+        relTargetFromDocument: 'settings.xml'
+      });
+    }
+
+    if (map.has('word/fontTable.xml')){
+      var fontTableText = new TextDecoder('utf-8').decode(map.get('word/fontTable.xml'));
+      map.set('word/fontTable.xml', new TextEncoder().encode(ensureFontTableEntry(fontTableText, settings.fontName, settings.fontAltName)));
+    } else {
+      map.set('word/fontTable.xml', new TextEncoder().encode(buildFontTableXml(settings.fontName, settings.fontAltName)));
+      ensurePartRegistered(map, {
+        partName: 'word/fontTable.xml',
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml',
+        relType: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable',
+        relTargetFromDocument: 'fontTable.xml'
+      });
+    }
+    return map;
+  }
+
+  function docxUploadSupported(){
+    return typeof DecompressionStream !== 'undefined' && typeof DOMParser !== 'undefined';
+  }
+
+  function docxTransformOpts(s){
+    return {
+      fontName: s.font.docx,
+      fontAltName: s.font.docxAlt,
+      sizeMultiplier: s.size.pt / 11, // "Normale" (11pt) = ×1 baseline; Grande/Très grande scale every existing size up from there
+      lineVal: s.spacing.docxLineVal,
+      afterVal: s.spacing.docxAfter,
+      letterSpacingTwips: s.letter.em ? 20 : 0,
+      bgHex: s.bg.hex
+    };
+  }
+
+  function setDocxResultMsg(text, kind){
+    var el = document.getElementById('docxResultMsg');
+    el.textContent = text || '';
+    el.className = 'export-msg' + (kind ? ' ' + kind : '');
+  }
+
+  async function runDocxUpload(){
+    var fileInput = document.getElementById('docxFile');
+    var file = fileInput.files && fileInput.files[0];
+    if (!file){ alert("Choisissez d'abord un fichier .docx à adapter."); return; }
+    if (!/\.docx$/i.test(file.name)){ alert("Ce fichier ne se termine pas par .docx — seul le format Word .docx (2007 et plus récent) est pris en charge."); return; }
+
+    var genBtn = document.getElementById('genBtn');
+    genBtn.disabled = true;
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('docxResult').style.display = '';
+    document.getElementById('docxResultInfo').textContent = 'Traitement de « ' + file.name + ' » en cours…';
+    document.getElementById('docxDownloadBtn').style.display = 'none';
+    setDocxResultMsg('');
+
+    try{
+      var fileBytes = new Uint8Array(await file.arrayBuffer());
+      var s = currentSettings();
+      var map = await transformDocxFile(fileBytes, docxTransformOpts(s));
+      var entries = [];
+      map.forEach(function(data, name){ entries.push({ name: name, data: data }); });
+      var zipBytes = buildZip(entries);
+
+      var baseName = file.name.replace(/\.docx$/i, '');
+      var outFilename = baseName + '-adapte.docx';
+
+      state.lastDocxBytes = zipBytes;
+      state.lastDocxFilename = outFilename;
+
+      document.getElementById('docxResultInfo').textContent =
+        '« ' + file.name + ' » adapté avec succès (' + entries.length + ' éléments internes conservés — mise en page, images, tableaux…).';
+      document.getElementById('docxDownloadBtn').style.display = '';
+      scrollToOutput();
+    }catch(e){
+      document.getElementById('docxResultInfo').textContent = '';
+      setDocxResultMsg("Échec du traitement : " + e.message + " — le fichier d'origine n'a pas été modifié.", 'err');
+    }finally{
+      genBtn.disabled = false;
+    }
+  }
+
+  document.getElementById('docxDownloadBtn').addEventListener('click', function(){
+    if (!state.lastDocxBytes){ return; }
+    deliverDownload(state.lastDocxFilename, state.lastDocxBytes, setDocxResultMsg, '.docx');
+  });
+
+  // ---------- source mode (texte collé / document Word) ----------
+  function resetOutput(){
+    document.getElementById('emptyState').style.display = '';
+    document.getElementById('previewOut').style.display = 'none';
+    document.getElementById('outActions').style.display = 'none';
+    document.getElementById('exportRow').style.display = 'none';
+    document.getElementById('docxResult').style.display = 'none';
+    setExportMsg('');
+    setDocxResultMsg('');
+  }
+
+  function updateSourceModeUI(){
+    var mode = document.querySelector('input[name="sourceMode"]:checked').value;
+    var isDocx = mode === 'docx';
+    document.getElementById('textSourceField').style.display = isDocx ? 'none' : '';
+    document.getElementById('docxSourceField').style.display = isDocx ? '' : 'none';
+    document.getElementById('oneSentenceField').style.display = isDocx ? 'none' : '';
+    document.getElementById('oneSentenceUnavailableHint').style.display = isDocx ? '' : 'none';
+    document.getElementById('presentationHint').style.display = isDocx ? 'none' : '';
+    document.getElementById('emptyState').textContent = isDocx
+      ? 'Choisissez un document Word à gauche, réglez la présentation, puis cliquez sur « Adapter la mise en page ». Le fichier adapté est proposé au téléchargement ici.'
+      : 'Collez un texte à gauche, réglez la présentation, puis cliquez sur « Adapter la mise en page ». L’aperçu s’affiche ici, modifiable avant l’export.';
+    document.getElementById('whatItDoesHint').innerHTML = isDocx
+      ? '<strong>Ce que fait l’outil :</strong> il ne modifie jamais le texte du document — ni orthographe, ni vocabulaire, ni sens, ni images, ni tableaux. Il change uniquement la présentation du corps du texte : police, taille (proportionnellement aux tailles déjà présentes), espacements, fond de page.'
+      : '<strong>Ce que fait l’outil :</strong> il ne modifie jamais les mots du texte collé — ni orthographe, ni vocabulaire, ni sens. Il change uniquement la présentation : police, taille, espacements, fond, et le découpage en lignes si « Une phrase par ligne » est coché (un retour à la ligne est inséré après chaque point, sans toucher au texte lui-même).';
+    resetOutput();
+  }
+  document.querySelectorAll('input[name="sourceMode"]').forEach(function(r){
+    r.addEventListener('change', updateSourceModeUI);
+  });
+
+  if (!docxUploadSupported()){
+    var docxRadio = document.querySelector('input[name="sourceMode"][value="docx"]');
+    docxRadio.disabled = true;
+    docxRadio.closest('.chip').title = 'Nécessite un navigateur récent (Chrome, Edge, Firefox ou Safari à jour).';
+    document.getElementById('docxScopeHint').style.display = 'none';
+    document.getElementById('docxUnsupportedHint').style.display = '';
+  }
+
+  document.getElementById('genBtn').addEventListener('click', function(){
+    var mode = document.querySelector('input[name="sourceMode"]:checked').value;
+    if (mode === 'docx'){ runDocxUpload(); } else { show(); }
+  });
 
 })();
 </script>
