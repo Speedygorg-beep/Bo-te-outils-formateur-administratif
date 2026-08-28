@@ -21,6 +21,10 @@ documents administratifs prêts à copier ou à exporter (PDF / Word / texte).
   contenu de séance et le travail à faire, prêt à coller dans Yparéo
 - **Compte-rendu de visite PFMP** (`compte-rendu-visite-pfmp.html`) — missions
   observées, bilan, points de vigilance et actions à mener en visite d'entreprise
+- **Adaptateur de mise en page** (`adaptateur-mise-en-page.html`) — reprend un
+  texte collé et adapte sa présentation (police, taille, espacements, fond de
+  page, une phrase par ligne) pour les besoins dys/PAP, sans jamais modifier
+  le texte lui-même
 
 ## Utiliser ce site
 
