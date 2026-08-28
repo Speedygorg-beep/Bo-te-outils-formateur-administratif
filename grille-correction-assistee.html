@@ -251,17 +251,28 @@
             <div class="field"><label for="apprenant">Prénom apprenant <span class="req">*</span></label><input type="text" id="apprenant" placeholder="Léa"></div>
             <div class="field"><label for="matiere">Matière (facultatif)</label><input type="text" id="matiere" placeholder="ex. français"></div>
           </div>
+          <p class="hint" style="margin-top:-8px; margin-bottom:14px;">Le commentaire s'adresse directement à l'apprenant (« vous ») — le prénom sert uniquement à nommer le fichier exporté.</p>
           <div class="field">
             <label for="exercice">Intitulé de l'exercice / de la copie (facultatif)</label>
             <input type="text" id="exercice" placeholder="ex. dissertation — séquence 3">
           </div>
 
           <fieldset>
+            <legend>Barème</legend>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="bareme" value="20" checked><span>/ 20</span></label>
+              <label class="chip"><input type="radio" name="bareme" value="100"><span>/ 100</span></label>
+              <label class="chip"><input type="radio" name="bareme" value="aucun"><span>Non noté</span></label>
+            </div>
+            <p class="hint">La note est toujours recalculée proportionnellement sur ce barème, quel que soit le total de points de la grille ci-dessous (ex. 18/24 dans la grille devient 15/20 si le barème choisi est / 20). « Non noté » retire toute note chiffrée : seul le commentaire par critère est généré.</p>
+          </fieldset>
+
+          <fieldset>
             <legend>Grille de critères</legend>
             <div id="liveScore">Note actuelle : 0 / 0</div>
             <div id="criteriaList"></div>
             <button type="button" class="btn btn-ghost" id="addCritBtn">+ Ajouter un critère</button>
-            <p class="hint">Les 5 critères par défaut totalisent 20 points, mais tout est modifiable : renommez, changez les points, ajoutez ou supprimez des critères selon l'exercice noté. Chaque niveau (À consolider / Fragile / Satisfaisant / Maîtrisé) est converti en points selon un barème indicatif — 20&nbsp;% / 50&nbsp;% / 75&nbsp;% / 100&nbsp;% du maximum du critère — à ajuster librement avant de reporter la note.</p>
+            <p class="hint">Les 5 critères par défaut totalisent 20 points, mais tout est modifiable : renommez, changez les points, ajoutez ou supprimez des critères selon l'exercice noté — le nombre de points par critère sert uniquement à les pondérer entre eux, la note finale est toujours ramenée au barème choisi ci-dessus. Chaque niveau (À consolider / Fragile / Satisfaisant / Maîtrisé) est converti en points selon un barème indicatif — 20&nbsp;% / 50&nbsp;% / 75&nbsp;% / 100&nbsp;% du maximum du critère — à ajuster librement avant de reporter la note. Le commentaire s'adresse directement à l'apprenant (« vous ») ; les 5 critères par défaut (ou un nom proche — « orthographe », « plan »…) donnent une formulation adaptée à leur sens, un critère renommé plus librement ou ajouté reçoit une formulation plus générale.</p>
           </fieldset>
 
           <div class="field">
@@ -679,30 +690,77 @@ if (typeof module !== 'undefined' && module.exports){
   var LEVEL_BY_KEY = {};
   LEVELS.forEach(function(lv){ LEVEL_BY_KEY[lv.key] = lv; });
 
-  // Chaque phrase complète "Le critère « X » est ___." — fonctionne quel que soit
-  // le libellé du critère (saisi librement par l'enseignant), sans accord à gérer.
-  var LEVEL_PHRASES = {
-    aConsolider: [
-      'encore à consolider avant une prochaine évaluation',
-      'à retravailler en priorité',
-      'un point qui demande un travail plus approfondi'
-    ],
-    fragile: [
-      'encore fragile, avec des bases qui restent à affermir',
-      'inégalement maîtrisé, des efforts sont encore nécessaires',
-      'globalement identifié mais pas encore stabilisé'
-    ],
-    satisfaisant: [
-      'globalement maîtrisé, avec quelques points à affiner',
-      'satisfaisant dans l\'ensemble',
-      'bien géré, avec de petites imprécisions'
-    ],
-    maitrise: [
-      'pleinement maîtrisé',
-      'un point fort de cette copie',
-      'très bien traité'
-    ]
+  // ---------- banques de phrases par critère, adressées "vous" ----------
+  // Chaque critère "connu" (les 5 par défaut, ou une variante proche) a sa propre
+  // banque de phrases naturelles adressées directement à l'apprenant. Un critère
+  // renommé ou ajouté qui ne correspond à aucun mot-clé retombe sur une formule
+  // générique (voir GENERIC_BANK plus bas) — toujours adressée "vous", mais moins
+  // spécifique puisque l'outil ne connaît pas le sens exact de ce que vous avez tapé.
+  var CRITERION_BANKS = {
+    consigne: {
+      aConsolider: ['Vous n\'avez pas respecté la consigne du sujet.', 'La consigne n\'a pas été suivie sur ce point.'],
+      fragile: ['Vous avez partiellement respecté la consigne.', 'La consigne est suivie de façon incomplète.'],
+      satisfaisant: ['Vous avez globalement respecté la consigne.', 'La consigne est respectée, avec quelques écarts mineurs.'],
+      maitrise: ['Vous avez parfaitement respecté la consigne.', 'La consigne est respectée avec précision.']
+    },
+    structure: {
+      aConsolider: ['Votre copie manque encore de structure.', 'L\'organisation de vos idées est à revoir entièrement.'],
+      fragile: ['La structure de votre copie reste à consolider.', 'L\'organisation de vos idées manque encore de clarté.'],
+      satisfaisant: ['Votre copie est globalement bien structurée.', 'L\'organisation de vos idées est satisfaisante, avec quelques transitions à améliorer.'],
+      maitrise: ['Votre copie est très bien structurée.', 'L\'organisation de vos idées est claire et efficace.']
+    },
+    contenu: {
+      aConsolider: ['Le contenu manque encore de pertinence par rapport au sujet.', 'Vous devez encore développer le contenu attendu.'],
+      fragile: ['Le contenu reste à approfondir pour être pleinement pertinent.', 'Vos idées sont présentes mais encore peu développées.'],
+      satisfaisant: ['Le contenu est globalement pertinent et bien développé.', 'Vos idées sont pertinentes, avec quelques points à approfondir.'],
+      maitrise: ['Le contenu est riche et parfaitement pertinent.', 'Vos idées sont bien développées et pertinentes.']
+    },
+    expression: {
+      aConsolider: ['L\'expression écrite et l\'orthographe sont encore à retravailler.', 'De nombreuses erreurs d\'orthographe ou de syntaxe nuisent à la lecture.'],
+      fragile: ['Quelques erreurs d\'orthographe ou de syntaxe restent à corriger.', 'Votre expression écrite manque encore de fluidité.'],
+      satisfaisant: ['Votre expression écrite est globalement correcte, avec quelques erreurs.', 'L\'orthographe est globalement maîtrisée.'],
+      maitrise: ['Votre expression écrite est soignée et l\'orthographe maîtrisée.', 'Votre expression écrite est fluide et précise.']
+    },
+    presentation: {
+      aConsolider: ['La présentation de votre copie est à soigner davantage.', 'Le soin apporté à la copie est insuffisant.'],
+      fragile: ['La présentation reste à améliorer.', 'Un peu plus de soin serait bienvenu dans la présentation.'],
+      satisfaisant: ['La présentation est soignée dans l\'ensemble.', 'Votre copie est globalement bien présentée.'],
+      maitrise: ['La présentation est très soignée.', 'Votre copie est parfaitement présentée.']
+    }
   };
+  // Formule de repli pour un critère renommé/ajouté qui ne correspond à aucune
+  // banque connue — reste adressée "vous", entre guillemets pour rester lisible
+  // quel que soit le libellé tapé par l'enseignant.
+  var GENERIC_BANK = {
+    aConsolider: ['ce point est encore à consolider — travaillez-le en priorité.', 'vous devez encore progresser sur ce point.'],
+    fragile: ['vous montrez des bases sur ce point, mais elles restent fragiles.', 'ce point reste incertain, des efforts sont encore nécessaires.'],
+    satisfaisant: ['vous maîtrisez globalement ce point, avec quelques imprécisions.', 'ce point est globalement acquis.'],
+    maitrise: ['vous maîtrisez pleinement ce point.', 'c\'est un vrai point fort de votre copie.']
+  };
+  // Reconnaît un critère "par défaut" (ou une variante proche) à partir de quelques
+  // mots-clés dans son libellé, insensible aux accents/majuscules — pour que
+  // renommer légèrement un critère (ex. "Orthographe" au lieu de "Expression
+  // écrite / orthographe") garde une formulation adaptée plutôt que générique.
+  var CRITERION_KEYWORDS = [
+    { bank: 'consigne', words: ['consigne', 'sujet'] },
+    { bank: 'structure', words: ['structur', 'organisat', 'plan'] },
+    { bank: 'contenu', words: ['contenu', 'pertinen', 'argument', 'analyse'] },
+    { bank: 'expression', words: ['expression', 'orthograph', 'syntax', 'grammaire', 'redaction'] },
+    { bank: 'presentation', words: ['presentation', 'soin', 'proprete'] }
+  ];
+  function stripAccents(s){
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+  function bankForCriterion(label){
+    var norm = stripAccents(label);
+    for(var i = 0; i < CRITERION_KEYWORDS.length; i++){
+      var entry = CRITERION_KEYWORDS[i];
+      for(var j = 0; j < entry.words.length; j++){
+        if(norm.indexOf(entry.words[j]) !== -1){ return CRITERION_BANKS[entry.bank]; }
+      }
+    }
+    return null;
+  }
 
   var CLOSING = {
     encourageant: ['Je vous encourage à poursuivre dans cette voie.', 'Continuez ainsi, ce travail est prometteur.'],
@@ -739,6 +797,24 @@ if (typeof module !== 'undefined' && module.exports){
   function fmtNote(n){
     return (Math.round(n * 10) / 10).toString().replace('.', ',');
   }
+  // Le barème (/20, /100, ou "aucun") est indépendant du total de points de la
+  // grille : on convertit toujours le pourcentage obtenu (points gagnés / total
+  // des critères) en une note sur le barème choisi — 18/24 devient 15/20, par
+  // exemple — plutôt que d'afficher le total brut de la grille.
+  function currentBareme(){
+    var el = document.querySelector('input[name="bareme"]:checked');
+    return el ? el.value : '20';
+  }
+  function scaledScore(baremeVal){
+    var tot = totalPoints();
+    var pct = tot > 0 ? (earnedPoints() / tot) : 0;
+    return pct * baremeVal;
+  }
+  function fmtScaled(n, baremeVal){
+    // Une note sur 100 se lit plus naturellement arrondie à l'entier ; sur 20,
+    // on garde une décimale (convention française habituelle, ex. 15,5/20).
+    return baremeVal === 100 ? String(Math.round(n)) : fmtNote(n);
+  }
   function critLabel(c, idx){
     return c.label ? ('« ' + c.label + ' »') : ('le critère ' + (idx + 1));
   }
@@ -746,13 +822,25 @@ if (typeof module !== 'undefined' && module.exports){
   function updateLiveScore(){
     var el = document.getElementById('liveScore');
     if(!el) return;
-    var tot = totalPoints();
-    var earned = earnedPoints();
     var graded = gradedCount();
     var n = criteria.length;
-    el.textContent = 'Note actuelle : ' + fmtNote(earned) + ' / ' + fmtNote(tot) +
-      (graded < n ? ' (provisoire — ' + graded + '/' + n + ' critère' + (n > 1 ? 's' : '') + ' noté' + (graded > 1 ? 's' : '') + ')' : '');
+    var provisoire = graded < n
+      ? ' (provisoire — ' + graded + '/' + n + ' critère' + (n > 1 ? 's' : '') + ' noté' + (graded > 1 ? 's' : '') + ')'
+      : '';
+    var bareme = currentBareme();
+    if(bareme === 'aucun'){
+      var suffix = n ? (' — ' + graded + '/' + n + ' critère' + (n > 1 ? 's' : '') + ' noté' + (graded > 1 ? 's' : '')) : '';
+      el.textContent = 'Pas de note chiffrée (barème « Non noté »)' + suffix + '.';
+      return;
+    }
+    var baremeVal = parseFloat(bareme);
+    var scaled = scaledScore(baremeVal);
+    el.textContent = 'Note actuelle : ' + fmtScaled(scaled, baremeVal) + ' / ' + baremeVal +
+      ' (' + fmtNote(earnedPoints()) + ' / ' + fmtNote(totalPoints()) + ' points de critères)' + provisoire;
   }
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="bareme"]'), function(r){
+    r.addEventListener('change', updateLiveScore);
+  });
 
   function renderCriteria(){
     var container = document.getElementById('criteriaList');
@@ -878,16 +966,26 @@ if (typeof module !== 'undefined' && module.exports){
       return null;
     }
 
-    var tot = totalPoints();
-    var earned = earnedPoints();
     var onSubject = f.exercice ? (' sur ' + '« ' + f.exercice + ' »') : (f.matiere ? (' en ' + f.matiere) : '');
+    var bareme = currentBareme();
 
     var lines = [];
-    lines.push(cap(f.apprenant) + ' obtient ' + fmtNote(earned) + ' / ' + fmtNote(tot) + onSubject + '.');
+    if(bareme === 'aucun'){
+      lines.push('Voici les retours sur votre travail' + onSubject + '.');
+    } else {
+      var baremeVal = parseFloat(bareme);
+      var scaled = scaledScore(baremeVal);
+      lines.push('Vous obtenez ' + fmtScaled(scaled, baremeVal) + ' / ' + baremeVal + onSubject + '.');
+    }
 
     var critSentences = criteria.map(function(c, idx){
-      var phrase = pickRandom(LEVEL_PHRASES[c.level]);
-      return 'Le critère ' + critLabel(c, idx) + ' est ' + phrase + '.';
+      var bank = bankForCriterion(c.label) || GENERIC_BANK;
+      var phrase = pickRandom(bank[c.level]);
+      // Une banque connue (consigne/structure/…) donne une phrase déjà complète ;
+      // la banque générique donne un complément à insérer après "Concernant « X », ".
+      return (bank === GENERIC_BANK)
+        ? ('Concernant ' + critLabel(c, idx) + ', ' + phrase)
+        : phrase;
     });
     critSentences = shuffle(critSentences);
     lines = lines.concat(critSentences);
@@ -899,7 +997,7 @@ if (typeof module !== 'undefined' && module.exports){
       });
       var best = sorted[0], worst = sorted[sorted.length - 1];
       if(best.c.level !== worst.c.level){
-        lines.push('Point fort : ' + critLabel(best.c, best.idx) + '. Point à travailler en priorité : ' + critLabel(worst.c, worst.idx) + '.');
+        lines.push('Votre point fort : ' + critLabel(best.c, best.idx) + '. À travailler en priorité : ' + critLabel(worst.c, worst.idx) + '.');
       }
     }
 
